@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+    flask:
+      build: .
+      ports:
+        - 5000:80
+      environment:
+        - FLASK_APP=app:app
+        - FLASK_ENV=development
+        - S3_COPY_CONFIG=false
+        - APP_CONFIG_FILE=/code/config/secrets.ini
