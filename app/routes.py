@@ -64,6 +64,20 @@ def get_user():
     favorite_map_id
     '''
 
+@app.route('/user/<user_id>/update', methods=['POST'])
+def update_user():
+    '''
+    Take: username, password, email (all optional)
+    update user based on id
+    user can only update self (except admin)
+    '''
+
+@app.route('/user/<user_id>/delete', methods=['GET'])
+def delete_user():
+    '''
+    user can only delete self (except admin)
+    '''
+
 @app.route('/map/<map_id>', methods=['GET'])
 def get_map():
     '''
