@@ -3,28 +3,38 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles.css') }}">
-    <script src="https://kit.fontawesome.com/4c608bd3fa.js"></script>
-
+    <meta charset="utf-8">
+    <title>American Health Mapper</title>
+    {% block head %}{% endblock %}
 </head>
-<title>American Health Mapper</title>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
-            <div class="navbar-collapse">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item">
-                        {% if not current_user.is_anonymous %}
-                        <span class="navbar-text">You are logged in as: {{ current_user.email }} </span>
-                        {% endif %}
-                    </li>
-                    <li class="nav-item">
-                        {% if current_user.is_anonymous %}
-                        <a class="nav-link" href="{{ url_for('login') }}">Log In</a>
-                        {% else %}
-                        <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
-                        {% endif %}
-                    </li>
-                </ul>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="{{ url_for('index') }}">American Health Mapper</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse"
+                data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="navbar-nav">
+                    <a class="nav-item nav-link" href="{{ url_for('index') }}">Home<span class="sr-only">(current)</span></a>
+                    <a class="nav-item nav-link" href="{{ url_for('analysis') }}">Analysis</a>
+                    <a class="nav-item nav-link" href="{{ url_for('explore') }}">Explore</a>
+                    <a class="nav-item nav-link active" href="{{ url_for('portfolio') }}">My Analyses</a>
+                </div>
+            </div>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="navbar-nav ml-auto">
+                    {% if current_user.is_anonymous %}
+                    <a class="nav-item nav-link" href="{{ url_for('register') }}">Register</a>
+                    <a class="nav-item nav-link" href="{{ url_for('login') }}">Log In</a>
+                    {% else %}
+                    <a class="nav-item nav-link" href="{{ url_for('settings') }}">Logged in as: {{ current_user.username }}</a>
+                    <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
+                    {% endif %}
+                </div>
             </div>
         </nav>
     </header>
@@ -39,3 +49,8 @@
     {% endwith %}
     {% block content %}{% endblock %}
 </body>
+<footer>
+    <a href="{{ url_for('tos') }}">Terms of Service</a>
+    <a href="{{ url_for('faq') }}">FAQ</a>
+    <a href="{{ url_for('about') }}">About Us</a>
+</footer>
