@@ -3,6 +3,7 @@ secrets.ini
 *.DS_Store
 *.db
 .idea
+preloaded_data/raw_data/
 
 # GitHub template from https://github.com/github/gitignore/blob/master/Python.gitignore
 

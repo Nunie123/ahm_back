@@ -1,3 +1,113 @@
-body {
-    background-color: #afafaf;
+
+
+html, body, #map, .outer-container{
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+main {
+    height: 93%
+}
+
+/* SIDEBAR */
+aside {
+    height: 100%;
+    background-color: #f7f6ef;
+    overflow-x: auto;
+}
+
+/* INFO BOX */
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    z-index: 500;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
+}
+.leaflet-top{
+    z-index: 50;
+}
+
+/* LEGEND  */
+.legend {
+    line-height: 18px;
+    color: #555;
+    text-align: center;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    background: white;
+    background: rgba(255,255,255,0.2);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    text-shadow: -1px 0 10px white, 0 1px white, 1px 0 white, 0 -1px white;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+.legend td, .legend tr, .legend table {
+    margin: 0px;
+    padding: 0px;
+}
+.legend .gradient-bar {
+    width: 50px;
+    height: 18px;
+}
+.legend-top-row {
+    margin-bottom: 9px;
+}
+#legend-left-text {
+    text-align: right;
+}
+#legend-right-text {
+    text-align: left;
+}
+.legend-big {
+    min-height: 160px;
+    width: 500px;
+}
+#legend-diamond {
+    height: 145px;
+    width: 140px;
+}
+.legend-middle-row td {
+    width: 140px;
+}
+
+/* MAP NAV BUTTONS */
+#data-content, #data-nav {
+    margin:0;
+    padding: 0;
+}
+
+/* Modal  */
+
+.field-mapper-headers{
+    font-weight: bold;
+    text-align: center;
+}
+.radio-div, .checkmark-div{
+    text-align: center;
+}
+#field-mapper-form .form-check-input {
+    margin-left: 0;
+}
+.data-sample-title{
+    font-weight: bold;
+    margin-top: 10px;
+}
+.data-table th{
+    min-width: 200px;
+}
+.table-wrapper{
+    overflow: scroll;
 }
