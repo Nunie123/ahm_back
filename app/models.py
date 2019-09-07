@@ -84,7 +84,7 @@ class GeographicDataset(db.Model):
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     geographic_attributes = db.relationship('GeographicAttribute', backref='geographic_dataset', lazy='dynamic')
     views = db.relationship('GeographicDatasetView', backref='geographic_dataset', lazy='dynamic')
-    maps = db.relationship('Map', backref='geographic_dataset', lazy='dynamic')
+    # maps = db.relationship('Map', backref='geographic_dataset', lazy='dynamic')
 
 
 class GeographicAttribute(db.Model):
@@ -102,8 +102,8 @@ class GeographicAttribute(db.Model):
 class Map(db.Model):
     __tablename__ = 'maps'
     map_id = db.Column(db.Integer, primary_key=True)
-    dataset_1_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id') , nullable=False)
-    dataset_2_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id'))
+    primary_dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id') , nullable=False)
+    secondary_dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id'))
     hex_color_1 = db.Column(db.Text)
     hex_color_2 = db.Column(db.Text)
     title = db.Column(db.Text)
@@ -115,6 +115,9 @@ class Map(db.Model):
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
     views = db.relationship('MapView', backref='map', lazy='dynamic')
+
+    primary_dataset = db.relationship("GeographicDataset", foreign_keys=[primary_dataset_id])
+    secondary_dataset = db.relationship("GeographicDataset", foreign_keys=[secondary_dataset_id])
 
 
 class MapView(db.Model):
@@ -130,7 +133,7 @@ class MapView(db.Model):
 class GeographicDatasetView(db.Model):
     __tablename__ = 'geographic_dataset_views'
     geographic_dataset_view_id = db.Column(db.Integer, primary_key=True)
-    geographic_dataset_id = db.Column(db.Integer, db.ForeignKey('maps.map_id') , nullable=False)
+    geographic_dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id') , nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id') , nullable=True)
     ip_address = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, server_default=sa.func.now())

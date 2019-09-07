@@ -3,7 +3,6 @@ from configparser import ConfigParser
 
 
 APP_CONFIG_FILE = os.environ.get("APP_CONFIG_FILE") or "config/secrets.ini"
-print(APP_CONFIG_FILE)
 
 
 def read_config(config_file):
