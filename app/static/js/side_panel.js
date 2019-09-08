@@ -1,47 +1,33 @@
-load_map_attribute_selections();
+"use strict";
 
-
-function load_map_attribute_selections(){
-
-
-    attributes.forEach(function(attribute) {
-        textNode = document.createTextNode(attribute);
-        li = document.createElement('li');
-        li.className = 'list-group-item';
-        button = document.createElement('button');
-        button.className = 'btn btn-info attribute-button'
-        li.appendChild(button);
-        button.appendChild(textNode);
-        attributeListEl.appendChild(li);
-        button.addEventListener('click', function(){toggleMapLayer(attribute, attributeLevel)});
-    });
-};
-
-
-
-function toggleMapLayer(layerName, attributeLevel) {
-    if( state.activeMapLayerNames.indexOf(layerName) != -1 ){
-        state.activeMapLayerNames.splice( state.activeMapLayerNames.indexOf(layerName), 1 );  //removes layerName from activeMapLayerNames
-    } else {
-        state.activeMapLayerNames.push(layerName)
+function toggleAttributes(e){
+    var attributesList;
+    if(e.id.slice(0,7) == 'default'){
+        attributesList = document.getElementById('default-data-attributes');
     }
-    refreshMapLayers(attributeLevel);
-    updateSelectedAttributeDisplay();
-};
+    attributesList.style.display = (attributesList.style.display === 'none') ? 'block' : 'none';
+}
 
-function updateSelectedAttributeDisplay(){
-    ul = document.getElementById('current-map-attributes');
-    while (ul.firstChild) {
-        ul.removeChild(ul.firstChild);
-    };
-    for(let i=0; i<state.activeMapLayerNames.length; i++){
-        let layerName = state.activeMapLayerNames[i];
-        let color = state.colors[i];
-        let li = document.createElement('li');
-        let textNode = document.createTextNode(layerName);
-        li.className = 'current-attribute-item';
-        li.style.color = color;
-        li.appendChild(textNode);
-        ul.appendChild(li);
-    };
-};
+function toggleSources(e){
+    var sourceList;
+    if(e.id.slice(0,7) == 'default'){
+        sourceList = document.getElementById('default-data-sources');
+    }
+    sourceList.style.display = (sourceList.style.display === 'none') ? 'block' : 'none';
+}
+
+function selectAttribute(e){
+    var datasetId = e.dataset.sourceId
+    var attributeName = e.textContent.trim()
+    var url_string = SCRIPT_ROOT + 'get-data-attribute'
+    var url = new URL(url_string)
+    var params = {datasetId: datasetId, attributeName: attributeName}
+    url.search = new URLSearchParams(params)
+    fetch(url)
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(myJson) {
+            console.log(JSON.stringify(myJson));
+        });
+}

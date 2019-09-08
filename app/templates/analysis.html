@@ -9,14 +9,33 @@
 <div class="container-fluid outer-container">
     <main class="row">
         <aside class="col-sm-3">
-            <div>Current Attributes:</div>
-            <ul id="current-map-attributes"></ul>
-            <div><span id="attribute1"></span><span id="attribute1_color"></span></div>
-            <div><span id="attribute2"></span><span id="attribute2_color"></span></div>
-            <div>Select a State-Level Attribute:</div>
-            <ul id="state-map-attributes"></ul>
-            <div>Select a County-Level Attribute:</div>
-            <ul id="county-map-attributes"></ul>
+            <div class="list-group">
+                <button type="button" id="default-sources-btn" class="list-group-item list-group-item-action list-group-item-primary" onclick="toggleSources(this)">
+                    Default Data Sources
+                </button>
+                <div class="list-group" id="default-data-sources" style="display: block;">
+                    {% for dataset in default_dataset_list %}
+                    <button type="button" id="default-attributes-btn" class="list-group-item list-group-item-action list-group-item-info  dataset-btn" onclick="toggleAttributes(this)">
+                        {{ dataset.name }}
+                    </button>
+                    <div class="list-group" id="default-data-attributes" style="display: block;">
+                        {% for attribute in dataset.distinct_geographic_attribute_names %}
+                        <button type="button" 
+                                data-source-id="{{ attribute['dataset_id'] }}" 
+                                class="list-group-item list-group-item-action list-group-item-light" 
+                                onclick="toggleYearList(this)">
+                            {{ attribute['name'] }}
+                            <div class="attribute-years"></div>
+                        </button>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="list-group-item list-group-item-action list-group-item-primary">Personal Data Sources</button>
+                <button type="button" class="list-group-item list-group-item-action list-group-item-primary">Favorite Data Sources</button>
+            </div>
+            
+
         </aside>
         <div class="container col-sm-9" id="data-content">
             <nav class="row navbar navbar-light bg-light" id="data-nav">
@@ -75,17 +94,8 @@
         </div>
     </main>
 </div>
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous">
-</script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
-</script>
-<script src="{{ url_for('static',filename='js/map.js') }}"></script>
-<script src="{{ url_for('static',filename='js/side_panel.js') }}"></script>
+<script src="{{ url_for('static',filename='js/us_state_geojson.js') }}"></script>
+<script src="{{ url_for('static',filename='js/analysis.js') }}"></script>
 <script src="{{ url_for('static',filename='js/papaparse.min.js') }}"></script>
 <script src="{{ url_for('static',filename='js/upload_data.js') }}"></script>
 

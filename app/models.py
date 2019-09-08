@@ -2,7 +2,9 @@ import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlalchemy as sa
+from sqlalchemy_serializer import SerializerMixin
 from app import login, db
+import app.helpers as helpers
 
 
 @login.user_loader
@@ -71,7 +73,7 @@ class GeoCode(db.Model):
     geographic_attributes = db.relationship('GeographicAttribute', backref='geo_code', lazy='dynamic')
 
 
-class GeographicDataset(db.Model):
+class GeographicDataset(db.Model, SerializerMixin):
     __tablename__ = 'geographic_datasets'
     geographic_dataset_id = db.Column(db.Integer, primary_key=True)
     owner_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
@@ -84,10 +86,28 @@ class GeographicDataset(db.Model):
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     geographic_attributes = db.relationship('GeographicAttribute', backref='geographic_dataset', lazy='dynamic')
     views = db.relationship('GeographicDatasetView', backref='geographic_dataset', lazy='dynamic')
-    # maps = db.relationship('Map', backref='geographic_dataset', lazy='dynamic')
+
+    @property
+    def geographic_attributes_dict(self):
+        return [helpers.convert_row_to_dict(row) for row in self.geographic_attributes]
+
+    @property
+    def distinct_geographic_attribute_names(self):
+        name_list = [attribute.attribute_name for attribute in self.geographic_attributes]
+        distinct_name_list = list(set(name_list))
+        distinct_name_list.sort()
+        distinct_attribute_list = [{'name': name, 'dataset_id': self.geographic_dataset_id} for name in distinct_name_list]
+        # distinct_attribute_list = []
+        # for name in distinct_name_list:
+        #     years = GeographicAttribute.query.with_entities(GeographicAttribute.attribute_year)\
+        #         .filter_by(attribute_name=name, dataset_id=self.geographic_dataset_id).order_by(GeographicAttribute.attribute_year.desc())
+        #     attribute_dict = {'name': name, 'years': years, 'dataset_id': self.geographic_dataset_id}
+        #     distinct_attribute_list.append(attribute_dict)
+        # print(distinct_attribute_list)
+        return distinct_attribute_list
 
 
-class GeographicAttribute(db.Model):
+class GeographicAttribute(db.Model, SerializerMixin):
     __tablename__ = 'geographic_attributes'
     geographic_attribute_id = db.Column(db.Integer, primary_key=True)
     geo_code_id = db.Column(db.Integer, db.ForeignKey('geo_codes.geo_code_id'), nullable=False)
@@ -97,6 +117,11 @@ class GeographicAttribute(db.Model):
     attribute_value_type = db.Column(sa.Enum('percent', 'count', name='value_type', create_type=True), nullable=False)
     attribute_year = db.Column(db.SmallInteger)
     attribute_relative_weight = db.Column(sa.Enum('high', 'medium', 'low', name='relative_weights', create_type=True))
+    __table_args__ = (db.UniqueConstraint('dataset_id', 'attribute_name', name='_dataset_attribute-name_uc'),)
+
+    @property
+    def geo_name(self):
+        return self.geo_code.geo_name
     
 
 class Map(db.Model):

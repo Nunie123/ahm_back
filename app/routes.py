@@ -1,8 +1,10 @@
-from flask import render_template, request, flash, redirect, url_for
+from datetime import datetime
+from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from app import app, db
 from app.forms import RegistrationForm, LoginForm
 from app import models
+import app.helpers as helpers
 
 
 @app.route('/', methods=['GET'])
@@ -58,7 +60,7 @@ def authenticate_email():
     pass
 
 
-@app.route('/register_admin', methods=['POST'])
+@app.route('/register-admin', methods=['POST'])
 def register_admin():
     """
     Only allow other admins access to endpoint.
@@ -72,11 +74,34 @@ def register_admin():
 
 @app.route('/analysis', methods=['GET', 'POST'])
 def analysis():
-    default_attributes = models.GeographicAttribute.query.join(models.GeographicDataset)\
-        .filter_by(models.GeographicDataset.display_by_default == True).all()
-    default_attributes_list = [dict(row) for row in default_attributes]
+    default_datasets = models.GeographicDataset.query.filter_by(display_by_default=True).all()
+    serialized_default = [row.to_dict(rules=('-geographic_attributes', 'distinct_geographic_attribute_names')) for row in default_datasets]
+    user_datasets = []
+    favorite_datasets = []
+    return render_template('analysis.html'
+                            , default_dataset_list=serialized_default
+                            , user_dataset_list=user_datasets
+                            , favorite_dataset_list=favorite_datasets)
 
-    return render_template('analysis.html', default_attributes_list=default_attributes_list)
+@app.route('/get-attribute-years', methods=['GET'])
+def get_attribute_year():
+    dataset_id = request.args.get('datasetId')
+    attribute_name = request.args.get('attributeName')
+    year_rows = models.GeographicAttribute.query.with_entities(models.GeographicAttribute.attribute_year)\
+        .filter_by(dataset_id=dataset_id, attribute_name=attribute_name)
+    year_list = [row.attribute_year for row in year_rows]
+    distinct_year_list = list(set(year_list))
+    distinct_year_list.sort(reverse=True)
+    return jsonify(distinct_year_list)
+
+@app.route('/get-data-attribute', methods=['GET'])
+def get_data_attribute():
+    dataset_id = request.args.get('datasetId')
+    attribute_name = request.args.get('attributeName')
+    attribute_year = request.args.get('attributeYear')
+    attribute_list = models.GeographicAttribute.query.filter_by(dataset_id=dataset_id, attribute_name=attribute_name, attribute_year=attribute_year)
+    serialized_list = [row.to_dict(rules=('-geographic_dataset', '-geo_code', 'geo_name')) for row in attribute_list]
+    return jsonify(serialized_list)
 
 
 @app.route('/save-dataset', methods=['POST'])

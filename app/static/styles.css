@@ -15,6 +15,9 @@ aside {
     background-color: #f7f6ef;
     overflow-x: auto;
 }
+button.dataset-btn{
+    padding-left: 35px;
+}
 
 /* INFO BOX */
 .info {
