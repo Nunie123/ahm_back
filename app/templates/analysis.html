@@ -7,91 +7,14 @@
 
 {% block content %}
 <div class="container-fluid outer-container">
-    <main class="row">
-        <aside class="col-sm-3">
-            <div class="list-group">
-                <button type="button" id="default-sources-btn" class="list-group-item list-group-item-action list-group-item-primary" onclick="toggleSources(this)">
-                    Default Data Sources
-                </button>
-                <div class="list-group" id="default-data-sources" style="display: block;">
-                    {% for dataset in default_dataset_list %}
-                    <button type="button" id="default-attributes-btn" class="list-group-item list-group-item-action list-group-item-info  dataset-btn" onclick="toggleAttributes(this)">
-                        {{ dataset.name }}
-                    </button>
-                    <div class="list-group" id="default-data-attributes" style="display: block;">
-                        {% for attribute in dataset.distinct_geographic_attribute_names %}
-                        <button type="button" 
-                                data-source-id="{{ attribute['dataset_id'] }}" 
-                                class="list-group-item list-group-item-action list-group-item-light" 
-                                onclick="toggleYearList(this)">
-                            {{ attribute['name'] }}
-                            <div class="attribute-years"></div>
-                        </button>
-                        {% endfor %}
-                    </div>
-                    {% endfor %}
-                </div>
-                <button type="button" class="list-group-item list-group-item-action list-group-item-primary">Personal Data Sources</button>
-                <button type="button" class="list-group-item list-group-item-action list-group-item-primary">Favorite Data Sources</button>
-            </div>
-            
-
-        </aside>
-        <div class="container col-sm-9" id="data-content">
-            <nav class="row navbar navbar-light bg-light" id="data-nav">
-                <form class="form-inline">
-                    <button class="btn btn-success" type="button">Map</button>
-                    <button class="btn btn-outline-success" type="button">Table</button>
-                    <button class="btn btn-outline-success" type="button">Statistics</button>
-                    <button class="btn btn-outline-success" type="button">Customize</button>
-                </form>
-                <form class="form-inline my-2 my-sm-0">
-                    <button type="button" data-toggle="modal" data-target="#import-modal"
-                        class="btn btn-outline-info my-2 my-sm-0">Import Dataset</button>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-info dropdown-toggle" type="button" id="dropdownMenuButton"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Download
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="#">Map as PNG</a>
-                            <a class="dropdown-item" href="#">Map as PDF</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">Data as CSV</a>
-                            <a class="dropdown-item" href="#">Data as Excel</a>
-                            <a class="dropdown-item" href="#">Data as GeoJSON</a>
-                        </div>
-                    </div>
-                    <button class="btn btn-outline-info my-2 my-sm-0">Save</button>
-                </form>
-            </nav>
-            <map class="row" id="map"></map>
+    <main>
+        {% include "partials/_map_nav_bar.html" %}
+        <div id="data-content" class="row">
+            <map class="col-sm-12" id="map">
+                <aside id="map-side-panel"> {% include "partials/_side_panel.html" %} </aside>
+            </map>
         </div>
-        <div id="import-modal" class="modal bd-example-modal-lg" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Upload Data</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body" id="import-modal-body">
-                        <form id="modal-upload-starting-form">
-                            <div class="form-group">
-                                <label for="exampleFormControlFile1">Select file to import:</label>
-                                <input type="file" class="form-control-file" id="file-import" accept=".csv">
-                            </div>
-                        </form>
-                        <div id="import-modal-field-mapper"></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button id="upload-file-button" type="button" class="btn btn-primary">Upload</button>
-                        <button id="close-modal-button" type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div> {% include "partials/_upload_modal.html" %} </div>
     </main>
 </div>
 <script src="{{ url_for('static',filename='js/us_state_geojson.js') }}"></script>

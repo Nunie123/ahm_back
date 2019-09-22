@@ -1,0 +1,25 @@
+<div id="import-modal" class="modal bd-example-modal-lg" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Data</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="import-modal-body">
+                <form id="modal-upload-starting-form">
+                    <div class="form-group">
+                        <label for="exampleFormControlFile1">Select file to import:</label>
+                        <input type="file" class="form-control-file" id="file-import" accept=".csv">
+                    </div>
+                </form>
+                <div id="import-modal-field-mapper"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="upload-file-button" type="button" class="btn btn-primary">Upload</button>
+                <button id="close-modal-button" type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

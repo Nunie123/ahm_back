@@ -3,6 +3,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <script type=text/javascript>
         const SCRIPT_ROOT = "{{ url_for('index', _external=True) }}";
     </script>
@@ -25,7 +26,7 @@
                     <a class="nav-item nav-link" href="{{ url_for('index') }}">Home<span class="sr-only">(current)</span></a>
                     <a class="nav-item nav-link" href="{{ url_for('analysis') }}">Analysis</a>
                     <a class="nav-item nav-link" href="{{ url_for('explore') }}">Explore</a>
-                    <a class="nav-item nav-link active" href="{{ url_for('portfolio') }}">My Analyses</a>
+                    <a class="nav-item nav-link " href="{{ url_for('portfolio') }}">My Analyses</a>
                 </div>
             </div>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">

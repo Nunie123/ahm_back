@@ -1,22 +1,48 @@
 
 
-html, body, #map, .outer-container{
+html, body, #data-content, #map, .outer-container{
     height: 100%;
-    padding: 0;
+    padding-top: 0;
+    padding-bottom: 0;
     margin: 0;
 }
 main {
     height: 93%
 }
 
+/* MAP NAV BUTTONS */
+#data-nav {
+    margin:0;
+    padding: 0;
+}
+
 /* SIDEBAR */
-aside {
+#map-side-panel {
     height: 100%;
-    background-color: #f7f6ef;
+    background-color: #e0e0e0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1001;
+    width:400px;
+    overflow-y: auto;
+    cursor: default;
+}
+#attribute-options{
     overflow-x: auto;
 }
 button.dataset-btn{
     padding-left: 35px;
+}
+.attribute-remove-button{
+    cursor: pointer;
+    text-align: center;
+}
+.attribute-cell{
+    background-color: #fafafa;
+    border: 3px solid gray;
+    padding: 4px;
+    font-size: 1.2em;
 }
 
 /* INFO BOX */
@@ -86,11 +112,7 @@ button.dataset-btn{
     width: 140px;
 }
 
-/* MAP NAV BUTTONS */
-#data-content, #data-nav {
-    margin:0;
-    padding: 0;
-}
+
 
 /* Modal  */
 
