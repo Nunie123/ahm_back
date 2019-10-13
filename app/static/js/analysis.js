@@ -27,8 +27,7 @@ class Choropleth {
         var map = L.map('map', {scrollWheelZoom: false}).setView([37.8, -96], 4);
     
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=' + mapboxAccessToken, {
-            id: 'mapbox.light'
-            , attribution: '© Mapbox, © OpenStreetMap'
+            id: 'mapbox.light', attribution: '© Mapbox, © OpenStreetMap'
         }).addTo(map);
     
         return map;

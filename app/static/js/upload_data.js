@@ -1,16 +1,125 @@
-addUploadEventListener()
+addUploadEventListener();
 
 function addUploadEventListener() {
+    let fileSelectInput = document.getElementById('file-import');
+    fileSelectInput.onclick = function(){
+        fileSelectInput.value = '';
+    };
+    fileSelectInput.onchange = function(){
+        displayFieldMapper(fileSelectInput);
+    };
+}
 
-    let button = document.getElementById('upload-file-button');
-    button.addEventListener('click', function () {        
-        if(state.filePendingUpload){
-            completeDataUpload()
-        } else {
-            showFileUploadOptions()
-        };
+function displayFieldMapper(uploadInput){
+    let file = uploadInput.files[0];
+    Papa.parse(file, {
+        preview: 5,
+        header: true,
+        complete: function (results) {
+            let table = document.getElementById('field-mapper');
+            table.innerHTML = '<thead><tr><th>Field Name</th><th>Field Label</th></tr></thead>';
+            let tbody = document.createElement('tbody');
+            tbody.id = 'mapping-tbody';
+            table.appendChild(tbody);
+            results.meta.fields.forEach(function(field){
+                let row = document.createElement('tr');
+                let nameCell = document.createElement('td');
+                nameCell.textContent = field;
+                let labelCell = document.createElement('td');
+                labelCell.innerHTML = ('<select class="field-label">' +
+                                        '<option value="ignore">ignore</option>' +
+                                        '<option value="geographic-label">Geographic Label</option>' +
+                                        '<option value="attribute-name">Attribute Name</option>' +
+                                        '<option value="attribute-value">Attribute Value</option>' +
+                                        '<option value="attribute-year">Attribute Year</option>' +
+                                        '</select>');
+                row.appendChild(nameCell);
+                row.appendChild(labelCell);
+                tbody.appendChild(row);
+
+            });
+        }
     });
-};
+}
+
+function clearModal(){
+    let table = document.getElementById('field-mapper');
+    table.innerHTML='';
+    let fileSelectInput = document.getElementById('file-import');
+    fileSelectInput.value = '';
+}
+
+function uploadDataset(){
+    let uploadInput = document.getElementById('file-import');
+    let file = uploadInput.files[0];
+    let table = document.getElementById('mapping-tbody');
+    let rows = table.children;
+    let mapper = {};
+    for(let i=0; i < rows.length; i++){
+        let row = rows[i];
+        let mappedFrom = row.children[0].textContent;
+        let mappedTo = row.children[1].children[0].value;
+        mapper[mappedFrom] = mappedTo;
+    }
+    console.log(mapper)
+    Papa.parse(file, {
+        header: true,
+        complete: function (results) {
+             mapJsonFields(results.data, mapper);
+            console.log(results.data)
+            // sendNewDatasetToDb(results.data)
+            if(results.errors.length > 0) {
+                console.log('Error parsing data:', results.errors);
+            }
+        }
+    });
+
+    async function sendNewDatasetToDb(data){
+        let url_string = SCRIPT_ROOT + 'save-dataset';
+        let response = await postData(url_string, data);
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+    }
+
+    function mapJsonFields(json, mapper){
+        for(let i=0; i < json.length; i++){
+            let row = json[i];
+            Object.keys(row).forEach(function(oldKey){
+                let newKey = mapper[oldKey];
+                if(newKey == 'ignore'){
+                    delete row[oldKey];
+                } else {
+                    delete Object.assign(row, {[newKey]: row[oldKey] })[oldKey];    //rename key
+                }
+            });
+        }
+        return json;
+    }
+}
+
+async function postData(url = '', data = {}) {
+    // Default options are marked with *
+    const response = await fetch(url, {
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+      mode: 'cors', // no-cors, *cors, same-origin
+      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+      credentials: 'same-origin', // include, *same-origin, omit
+      headers: {
+        'Content-Type': 'application/json'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      redirect: 'follow', // manual, *follow, error
+      referrer: 'no-referrer', // no-referrer, *client
+      body: JSON.stringify(data) // body data type must match "Content-Type" header
+    });
+    return await response.json(); // parses JSON response into native JavaScript objects
+  }
+
+
+
+
+
 
 function completeDataUpload(){
     // console.log(state.filePendingUpload);
@@ -21,13 +130,13 @@ function completeDataUpload(){
             addDataToGeoJson(data, 'state');
         }
     });
-};
+}
 
 function addDataToGeoJson(data, geoLevel, ignoreIndexes, normalizeIndexes){        // data must be 2-dimensional array with headers as first row and geo data as first column
     // console.log(data)
     headers = data[0];
     if(geoLevel==='state'){
-        let newProperties = headers.slice(1,);
+        let newProperties = headers.slice(1);
         // console.log(state.stateData.choropleth_properties.concat(newProperties))
         state.stateData.choropleth_properties = state.stateData.choropleth_properties.concat(newProperties);
         // console.log(state.stateData.choropleth_properties)
@@ -57,7 +166,7 @@ function addDataToGeoJson(data, geoLevel, ignoreIndexes, normalizeIndexes){     
     document.getElementById('close-modal-button').click();
     document.getElementById('modal-upload-starting-form').style.visibility = 'visible';
     removeChildren('import-modal-field-mapper');
-};
+}
 
 function showFileUploadOptions() {
     let uploadInput = document.getElementById('file-import');
@@ -71,7 +180,7 @@ function showFileUploadOptions() {
         };
     state.filePendingUpload = file;
     populateFormWithParsedData(file, 'import-modal-field-mapper');
-};
+}
 
 function populateFormWithParsedData(file, elementId) {
     Papa.parse(file, {
@@ -84,15 +193,15 @@ function populateFormWithParsedData(file, elementId) {
             appendUploadAsTable(data, element);
         }
     });
-};
+}
 
 function removeChildren(id){
     let el = document.getElementById(id);
         while (el.firstChild) {
             el.removeChild(el.firstChild);
-        };
+        }
     return el;
-};
+}
 
 function appendFieldMapper(data, element){
     let form = document.createElement('form');
@@ -163,9 +272,9 @@ function appendFieldMapper(data, element){
         normalizeInput.className = 'form-check-input';
         normalizeInput.setAttribute('type', 'checkbox');
         normalizeDiv.appendChild(normalizeInput);
-    };
+    }
 
-};
+}
 
 function appendUploadAsTable(data, element) {
     let div = document.createElement('div');
@@ -203,5 +312,5 @@ function appendUploadAsTable(data, element) {
     }
     uploadButton = document.getElementById('upload-file-button');
     uploadButton.textContent = 'Complete Upload';
-};
+}
 

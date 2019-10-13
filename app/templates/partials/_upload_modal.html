@@ -9,15 +9,54 @@
             </div>
             <div class="modal-body" id="import-modal-body">
                 <form id="modal-upload-starting-form">
-                    <div class="form-group">
-                        <label for="exampleFormControlFile1">Select file to import:</label>
-                        <input type="file" class="form-control-file" id="file-import" accept=".csv">
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Select file to import:</label>
+                        <div class="col-sm-9">
+                            <input type="file" class="form-control-file" id="file-import" accept=".csv">
+                        </div>
                     </div>
                 </form>
-                <div id="import-modal-field-mapper"></div>
+                <form>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Dataset Name</label>
+                        <div class="col-sm-9">
+                            <input type="text" placeholder='e.g. "CDC Annual Survey"' class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Description</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Organization</label>
+                        <div class="col-sm-9">
+                            <input type="text" placeholder='e.g. "National Institutes of Health"' class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Website</label>
+                        <div class="col-sm-9">
+                            <input type="text" placeholder='e.g. "www.hin.gov/new-report-data-123"' class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Year</label>
+                        <div class="col-sm-9">
+                            <input type="text" placeholder='Leave blank if dataset includes year column.' class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="">
+                        <label class="form-check-label">Make Private</label>
+                    </div>
+                </form>
+                <hr>
+                <table id="field-mapper"></table>
             </div>
             <div class="modal-footer">
-                <button id="upload-file-button" type="button" class="btn btn-primary">Upload</button>
+                <button id="upload-file-button" type="button" class="btn btn-primary" onclick="uploadDataset()">Upload</button>
                 <button id="close-modal-button" type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
             </div>
         </div>

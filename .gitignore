@@ -4,6 +4,8 @@ secrets.ini
 *.db
 .idea
 preloaded_data/raw_data/
+node_modules/
+data/
 
 # GitHub template from https://github.com/github/gitignore/blob/master/Python.gitignore
 
@@ -106,3 +108,4 @@ ENV/
 
 # mypy
 .mypy_cache/
+node_modules
