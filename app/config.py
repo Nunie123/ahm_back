@@ -1,4 +1,5 @@
 import os
+import logging
 from configparser import ConfigParser
 
 
@@ -26,6 +27,21 @@ class AppConfig:
     SECRET_KEY = config.get('flask', 'secret_key')
     SQLALCHEMY_DATABASE_URI = build_sqlalchemy_uri(APP_CONFIG_FILE, "ahm-backend")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECURITY_PASSWORD_SALT = config.get('flask', 'SECURITY_PASSWORD_SALT')
+    DEBUG = True
+
+    # mail settings
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 465
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
+
+    # gmail authentication
+    MAIL_USERNAME = config.get('email', 'username')
+    MAIL_PASSWORD = config.get('email', 'password')
+
+    # mail accounts
+    MAIL_DEFAULT_SENDER = 'americanhealthmapper@gmail.com'
 
     @staticmethod
     def get_uri(database_name):
