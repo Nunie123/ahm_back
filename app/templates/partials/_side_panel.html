@@ -1,37 +1,34 @@
-<div id="attribute-selections">
-    <div class="container-fluid" id="selected-attributes">
-        <!-- <div class="row">
-            <div class="col-sm-12 cell">People who have stubbed their tow in the shower while singing</div>
+<div id="map-side-panel" class="visible-panel">
+    <div id="attribute-selections">
+        <div class="container-fluid" id="selected-attributes"></div>
+    </div>
+    
+    <div class="list-group" id="attribute-options">
+        <button type="button" id="default-sources-btn" class="list-group-item list-group-item-action list-group-item-primary" onclick="sidePanel.toggleSources(this)">
+            Default Data Sources
+        </button>
+        <div class="list-group" id="default-data-sources" style="display: block;">
+            {% for dataset in default_dataset_list %}
+            <button type="button" id="default-attributes-btn" class="list-group-item list-group-item-action list-group-item-info  dataset-btn" onclick="sidePanel.toggleAttributes(this)">
+                {{ dataset.name }}
+            </button>
+            <div class="list-group" id="default-data-attributes" style="display: block;">
+                {% for attribute in dataset.distinct_geographic_attribute_names %}
+                <button type="button" 
+                        data-source-id="{{ attribute['dataset_id'] }}" 
+                        class="list-group-item list-group-item-action list-group-item-light" 
+                        onclick="sidePanel.toggleYearList(this)">
+                    {{ attribute['name'] }}
+                    <div class="attribute-years"></div>
+                </button>
+                {% endfor %}
+            </div>
+            {% endfor %}
         </div>
-        <div class="row">
-            <div class="col-sm-8 cell">Catalogue of Stupid Stuff, 2016</div>
-            <div class="col-sm-4 cell" id="attribute-remove-button">remove</div>
-        </div> -->
+        <button type="button" class="list-group-item list-group-item-action list-group-item-primary">Personal Data Sources</button>
+        <button type="button" class="list-group-item list-group-item-action list-group-item-primary">Favorite Data Sources</button>
     </div>
 </div>
 
-<div class="list-group" id="attribute-options">
-    <button type="button" id="default-sources-btn" class="list-group-item list-group-item-action list-group-item-primary" onclick="toggleSources(this)">
-        Default Data Sources
-    </button>
-    <div class="list-group" id="default-data-sources" style="display: block;">
-        {% for dataset in default_dataset_list %}
-        <button type="button" id="default-attributes-btn" class="list-group-item list-group-item-action list-group-item-info  dataset-btn" onclick="toggleAttributes(this)">
-            {{ dataset.name }}
-        </button>
-        <div class="list-group" id="default-data-attributes" style="display: block;">
-            {% for attribute in dataset.distinct_geographic_attribute_names %}
-            <button type="button" 
-                    data-source-id="{{ attribute['dataset_id'] }}" 
-                    class="list-group-item list-group-item-action list-group-item-light" 
-                    onclick="toggleYearList(this)">
-                {{ attribute['name'] }}
-                <div class="attribute-years"></div>
-            </button>
-            {% endfor %}
-        </div>
-        {% endfor %}
-    </div>
-    <button type="button" class="list-group-item list-group-item-action list-group-item-primary">Personal Data Sources</button>
-    <button type="button" class="list-group-item list-group-item-action list-group-item-primary">Favorite Data Sources</button>
-</div>
+
+<div id="side-panel-toggle" class="visible-panel" onclick="sidePanel.toggleSideBar()">Hide</div>

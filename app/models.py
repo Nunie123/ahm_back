@@ -72,6 +72,14 @@ class GeoCode(db.Model):
     geographic_level = db.Column(sa.Enum('state', 'county', name='geo_levels', create_type=True), nullable=False)
     geographic_attributes = db.relationship('GeographicAttribute', backref='geo_code', lazy='dynamic')
 
+    @staticmethod
+    def get_geocode_id(search_str):
+        geo_code_id = GeoCode.query.with_entities(GeoCode.geo_code_id)\
+            .filter(sa.or_(GeoCode.fips_code == search_str, 
+                            GeoCode.geo_name == search_str, 
+                            GeoCode.geo_abreviation == search_str)).first()
+        return geo_code_id
+
 
 class GeographicDataset(db.Model, SerializerMixin):
     __tablename__ = 'geographic_datasets'
@@ -114,7 +122,7 @@ class GeographicAttribute(db.Model, SerializerMixin):
     dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id'), nullable=False)
     attribute_name = db.Column(db.Text, nullable=False)
     attribute_value = db.Column(db.Numeric, nullable=False)
-    attribute_value_type = db.Column(sa.Enum('percent', 'count', name='value_type', create_type=True), nullable=False)
+    attribute_value_type = db.Column(sa.Enum('percent', 'count', name='value_type', create_type=True), server_default='percent')
     attribute_year = db.Column(db.SmallInteger)
     attribute_relative_weight = db.Column(sa.Enum('high', 'medium', 'low', name='relative_weights', create_type=True))
     __table_args__ = (db.UniqueConstraint('dataset_id', 'attribute_name', name='_dataset_attribute-name_uc'),)
@@ -122,6 +130,22 @@ class GeographicAttribute(db.Model, SerializerMixin):
     @property
     def geo_name(self):
         return self.geo_code.geo_name
+
+    @staticmethod
+    def bulk_insert(attributes, dataset_id):
+        insert_list = []
+        for attribute in attributes:
+            row = {}
+            row['geo_code_id'] = GeoCode.get_geocode_id(attribute.get('geographic-label'))
+            row['dataset_id'] = dataset_id
+            row['attribute_name'] = attribute.get('attribute-name')
+            row['attribute_value'] = attribute.get('attribute-value')
+            row['attribute_value_type'] = 'percent'
+            row['attribute_year'] = attribute.get('atrribute-year')
+            insert_list.append(row)
+        db.session.execute(GeographicAttribute.__table__.insert(), insert_list)
+        db.session.commit()
+
     
 
 class Map(db.Model):

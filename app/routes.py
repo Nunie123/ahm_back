@@ -1,9 +1,8 @@
 from datetime import datetime
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
-from app import app, db
+from app import app, db, models
 from app.forms import RegistrationForm, LoginForm
-from app import models
 import app.helpers as helpers
 
 
@@ -103,10 +102,27 @@ def get_data_attribute():
     serialized_list = [row.to_dict(rules=('-geographic_dataset', '-geo_code', 'geo_name')) for row in attribute_list]
     return jsonify(serialized_list)
 
-
+@login_required
 @app.route('/save-dataset', methods=['POST'])
 def save_dataset():
-    return 'foo'
+    data = request.get_json()
+    dataset_dict = data['metadata']
+    dataset_dict['owner_id'] = current_user.user_id
+    dataset_dict.pop('year', None)
+    attributes = data['data']
+
+    dataset = models.GeographicDataset(**dataset_dict)
+    models.GeographicAttribute.bulk_insert(attributes, dataset.geographic_dataset_id)
+    return  jsonify(success=True)
+    # try:
+    #     dataset = models.GeographicDataset(**dataset_dict)
+    #     db.session.add(dataset)
+    #     db.session.commit()
+    #     models.GeographicAttribute.bulk_insert(attributes, dataset.geographic_dataset_id)
+    #     return jsonify(success=True)
+    # except Exception as e:
+    #     print(e)
+    #     return jsonify(success=False)
 
 
 @app.route('/explore', methods=['GET', 'POST'])

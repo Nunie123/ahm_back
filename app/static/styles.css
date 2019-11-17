@@ -1,14 +1,25 @@
 
 
-html, body, #data-content, #map, .outer-container{
+html{
     height: 100%;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin: 0;
 }
-main {
-    height: 93%
+
+body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
+main, .outer-container, #data-content, #data-view {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+#map {
+    height: 100%;
+    flex: 1;
+}
+
 
 /* MAP NAV BUTTONS */
 #data-nav {
@@ -22,11 +33,20 @@ main {
     background-color: #e0e0e0;
     position: absolute;
     top: 0;
-    left: 0;
     z-index: 1001;
     width:400px;
     overflow-y: auto;
     cursor: default;
+}
+.visible-panel{
+    left: 0;
+    transition-property: left;
+    transition-duration: 0.5s;
+}
+.hidden-panel{
+    left: -400px;
+    transition-property: left;
+    transition-duration: 0.5s;
 }
 #attribute-options{
     overflow-x: auto;
@@ -44,6 +64,24 @@ button.dataset-btn{
     padding: 4px;
     font-size: 1.2em;
 }
+#side-panel-toggle{
+    transform: rotate(90deg);
+    position: absolute;
+    margin-left: 377px;
+    top: 50%;
+    z-index: 1001;
+    background-color: rgba(250, 250, 250, 0.5);
+    font-size: 1.1em;
+    padding: 3px 15px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    border-left: 1px solid black;
+    border-top: 1px solid black;
+    border-right: 1px solid black;
+    width: 70px;
+    height: 25px;
+    text-align: center;
+}
 
 /* INFO BOX */
 .info {
@@ -60,8 +98,10 @@ button.dataset-btn{
     color: #777;
 }
 .leaflet-top{
-    z-index: 50;
+    z-index: 50 !important;
 }
+
+
 
 /* LEGEND  */
 .legend {
@@ -135,4 +175,57 @@ button.dataset-btn{
 }
 .table-wrapper{
     overflow: scroll;
+}
+
+
+/* Tooltip text */
+.tooltips .tooltiptext {
+    visibility: hidden;
+    width: fit-content;
+    max-width: 350px;
+    background-color: #555;
+    color: #fff;
+    text-align: left;
+    padding: 5px;
+    border-radius: 6px;
+    font-weight: 400;
+  
+    /* Position the tooltip text */
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    margin-left: -60px;
+  
+    /* Fade in tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltips:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* TABLE VIEW ---------*/
+#table-view{
+    padding-left: 15px;
+    height: 100%;
+    flex: 1;
+    overflow-y: scroll;
+}
+.table-small{
+    margin-left: 400px !important;
+}
+#table-view td, #table-view th{
+
+}
+
+
+
+/* Utility      */
+.hidden {
+    display: none;
+}
+.visible {
+    display: block;
 }

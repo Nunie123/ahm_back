@@ -3,6 +3,7 @@
 {% block head %}
 <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
 <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+<script src="http://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -10,9 +11,14 @@
     <main>
         {% include "partials/_map_nav_bar.html" %}
         <div id="data-content" class="row">
-            <map class="col-sm-12" id="map">
-                <aside id="map-side-panel"> {% include "partials/_side_panel.html" %} </aside>
-            </map>
+            <div class="col-sm-12" id="data-view">
+                <map id="map" class="visible"></map>
+                <div id="table-view" class="hidden table-small"></div>
+                <div id="statistics-view" class="hidden table-small">
+                    {% include "partials/_statistics_table.html" %}
+                </div>
+                <aside> {% include "partials/_side_panel.html" %} </aside>
+            </div>
         </div>
         <div> {% include "partials/_upload_modal.html" %} </div>
     </main>

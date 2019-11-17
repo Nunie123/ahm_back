@@ -3,10 +3,11 @@ addUploadEventListener();
 function addUploadEventListener() {
     let fileSelectInput = document.getElementById('file-import');
     fileSelectInput.onclick = function(){
-        fileSelectInput.value = '';
+        clearModal();
     };
     fileSelectInput.onchange = function(){
         displayFieldMapper(fileSelectInput);
+        document.getElementById('upload-file-button').disabled=false;
     };
 }
 
@@ -42,47 +43,53 @@ function displayFieldMapper(uploadInput){
     });
 }
 
-function clearModal(){
-    let table = document.getElementById('field-mapper');
-    table.innerHTML='';
-    let fileSelectInput = document.getElementById('file-import');
-    fileSelectInput.value = '';
+function enableUploadButton(){
+    document.getElementById('upload-file-button').disabled = false;
 }
 
-function uploadDataset(){
+function clearModal(){
+    deleteChildrenById('field-mapper')
+    document.getElementById('file-import').value = '';
+    document.getElementById('file-import').value = '';
+    document.getElementById('dataset-name').value = '';
+    document.getElementById('dataset-description').value = '';
+    document.getElementById('dataset-org').value = '';
+    document.getElementById('dataset-url').value = '';
+    document.getElementById('dataset-year').value = '';
+    document.getElementById('dataset-private').checked = false;
+    document.getElementById('upload-file-button').disabled=true;
+}
+
+async function uploadDataset(){
     let uploadInput = document.getElementById('file-import');
     let file = uploadInput.files[0];
     let table = document.getElementById('mapping-tbody');
     let rows = table.children;
-    let mapper = {};
-    for(let i=0; i < rows.length; i++){
-        let row = rows[i];
-        let mappedFrom = row.children[0].textContent;
-        let mappedTo = row.children[1].children[0].value;
-        mapper[mappedFrom] = mappedTo;
-    }
-    console.log(mapper)
+    let metadata = buildMetadataObject();
+    let mapper = buildMapperObject(rows);
+ 
     Papa.parse(file, {
         header: true,
         complete: function (results) {
-             mapJsonFields(results.data, mapper);
-            console.log(results.data)
-            // sendNewDatasetToDb(results.data)
-            if(results.errors.length > 0) {
-                console.log('Error parsing data:', results.errors);
-            }
+            mapJsonFields(results.data, mapper, metadata.year);
+            let package = {};
+            package.metadata = metadata;
+            package.data = results.data;
+            console.log(package)
+            saveNewDataset(package);
         }
     });
 
-    async function sendNewDatasetToDb(data){
-        let url_string = SCRIPT_ROOT + 'save-dataset';
-        let response = await postData(url_string, data);
-        if (!response.ok) {
-            throw new Error('Network response was not ok.');
-        }
+    async function saveNewDataset(dataset){
+        const url_string = SCRIPT_ROOT + 'save-dataset';
+        const response = await postData(url_string, dataset);
+        console.log(response)
+        // if (!response.ok) {
+        //     throw new Error('Network response was not ok.');
+        // }
     }
 
-    function mapJsonFields(json, mapper){
+    function mapJsonFields(json, mapper, year=null){
         for(let i=0; i < json.length; i++){
             let row = json[i];
             Object.keys(row).forEach(function(oldKey){
@@ -92,10 +99,36 @@ function uploadDataset(){
                 } else {
                     delete Object.assign(row, {[newKey]: row[oldKey] })[oldKey];    //rename key
                 }
+                if(year){
+                    row['attribute-year'] = year;
+                }
             });
         }
         return json;
     }
+
+    function buildMapperObject(rows){
+        let mapper = {};
+        for(let i=0; i < rows.length; i++){
+            let row = rows[i];
+            let mappedFrom = row.children[0].textContent;
+            let mappedTo = row.children[1].children[0].value;
+            mapper[mappedFrom] = mappedTo;
+        }
+        return mapper;
+    }
+
+    function buildMetadataObject(){
+        let metadata = {};
+        metadata.name = document.getElementById('dataset-name').value;
+        metadata.description = document.getElementById('dataset-description').value;
+        metadata.organization = document.getElementById('dataset-org').value;
+        metadata.url = document.getElementById('dataset-url').value;
+        metadata.year = document.getElementById('dataset-year').value;
+        metadata.is_public = !document.getElementById('dataset-private').checked;
+        return metadata;
+    }
+
 }
 
 async function postData(url = '', data = {}) {
@@ -165,7 +198,7 @@ function addDataToGeoJson(data, geoLevel, ignoreIndexes, normalizeIndexes){     
     load_map_attribute_selections(geoLevel);
     document.getElementById('close-modal-button').click();
     document.getElementById('modal-upload-starting-form').style.visibility = 'visible';
-    removeChildren('import-modal-field-mapper');
+    deleteChildrenById('import-modal-field-mapper');
 }
 
 function showFileUploadOptions() {
@@ -193,14 +226,6 @@ function populateFormWithParsedData(file, elementId) {
             appendUploadAsTable(data, element);
         }
     });
-}
-
-function removeChildren(id){
-    let el = document.getElementById(id);
-        while (el.firstChild) {
-            el.removeChild(el.firstChild);
-        }
-    return el;
 }
 
 function appendFieldMapper(data, element){
@@ -314,3 +339,10 @@ function appendUploadAsTable(data, element) {
     uploadButton.textContent = 'Complete Upload';
 }
 
+// helpers ------------------------------------------------
+function deleteChildrenById(id){
+    const node = document.getElementById(id);
+    while (node.firstChild) {
+        node.removeChild(node.firstChild);
+  }
+}

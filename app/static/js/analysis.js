@@ -1,5 +1,10 @@
 "use strict";
 
+var L = L;  // imported from leaflet
+var URLSearchParams = window.URLSearchParams;  //JSHint doesn't recognize global object
+var URL_ROOT = SCRIPT_ROOT;  //imported from jinja template
+var jStat = jStat;  //imported from jstat
+
 
 // Map -----------------------------------------------------------------------------
 class Choropleth {
@@ -24,7 +29,7 @@ class Choropleth {
 
     createMap(){
         const mapboxAccessToken = 'pk.eyJ1IjoibnVuaWUxMjMiLCJhIjoiY2pscmNpNWNmMDNvMzNxbm5rOGI1cWhvZyJ9.TilZiY3pDTd9BZpagtnHiw';
-        var map = L.map('map', {scrollWheelZoom: false}).setView([37.8, -96], 4);
+        var map = L.map('map').setView([37.8, -96], 4);
     
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=' + mapboxAccessToken, {
             id: 'mapbox.light', attribution: '© Mapbox, © OpenStreetMap'
@@ -38,8 +43,8 @@ class Choropleth {
             this.removeGeoJsonLayer();
         }
         this.geoJsonLayer = L.geoJson(this.geoJson, {
-            style: this.styleGeoJsonLayer,
-            onEachFeature: this.onEachFeature
+            style: this.styleGeoJsonLayer.bind(this),
+            onEachFeature: this.onEachFeature.bind(this)
         }).addTo(this.map); 
     }
 
@@ -68,9 +73,10 @@ class Choropleth {
         return color;
     }
 
-    styleGeoJsonLayer = (feature) => {
+    styleGeoJsonLayer(feature) {
+        let fillColor = this.getColor(feature);
         var styleObj = {
-            fillColor: this.getColor(feature),
+            fillColor: fillColor,
             weight: 2,
             opacity: 0.3,
             color: 'white',
@@ -80,15 +86,15 @@ class Choropleth {
         return styleObj;
     }
 
-    onEachFeature = (feature, layer) => {
+    onEachFeature(feature, layer) {
         layer.on({
-            mouseover: this.highlightFeature,
-            mouseout: this.resetHighlight,
-            click: this.zoomToFeature
+            mouseover: this.highlightFeature.bind(this),
+            mouseout: this.resetHighlight.bind(this),
+            click: this.zoomToFeature.bind(this)
         });
     }
 
-    highlightFeature = (e) => {
+    highlightFeature(e) {
         var layer = e.target;
         layer.setStyle({
             weight: 5,
@@ -98,32 +104,32 @@ class Choropleth {
         });
         if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
             layer.bringToFront();
-        };
+        }
         this.infoLayer.update(layer.feature.properties);
     }
 
-    resetHighlight = (e) => {
+    resetHighlight(e) {
         this.geoJsonLayer.resetStyle(e.target);
         this.infoLayer.update();
     }
 
-    zoomToFeature = (e) => {
+    zoomToFeature(e) {
         this.map.fitBounds(e.target.getBounds());
     }
 
-    removeGeoJsonLayer = () => {
+    removeGeoJsonLayer() {
         this.map.removeLayer(this.geoJsonLayer);
     }
 
     addPropertyToGeoJson(propertyJson){
-        var propertyValueArray = propertyJson.map( propertyObj => parseFloat(propertyObj['attribute_value']));
+        var propertyValueArray = propertyJson.map( propertyObj => parseFloat(propertyObj.attribute_value));
         this.geoJson.features.forEach(function(geoEl){
             let propertyEl = propertyJson.filter(property => property.geo_name.toLowerCase() == geoEl.properties.NAME.toLowerCase());
     
             if(propertyEl.length > 0){
-                let propertyName = propertyEl[0]['attribute_name'];
-                let propertyValue = parseFloat(propertyEl[0]['attribute_value']);
-                let rank = scoreRelativeRanking(propertyValueArray, propertyValue)
+                let propertyName = propertyEl[0].attribute_name;
+                let propertyValue = parseFloat(propertyEl[0].attribute_value);
+                let rank = scoreRelativeRanking(propertyValueArray, propertyValue);
                 geoEl.properties[propertyName] = propertyValue;
                 geoEl.properties[`${propertyName} relative rank`] = rank;
             }
@@ -141,154 +147,49 @@ class Choropleth {
         }
     }
 
-    addChoroplethProperty(propertyJson){
-        var propertyName = propertyJson[0]['attribute_name'];
+    removePropertyFromGeoJson(propertyName){
+        this.geoJson.features.map( function(feature){
+            delete feature.properties[propertyName];
+            delete feature.properties[`${propertyName} relative rank`];
+        });
+    }
 
+    addChoroplethProperty(propertyJson){
+        var propertyName = propertyJson[0].attribute_name;
         if(this.choroplethProperties.length < 2){
             this.choroplethProperties.push(propertyName);
             this.addPropertyToGeoJson(propertyJson);
             this.addChoroplethToMap();
         }
+        // The code breaks without the below assignment.  I do not know why.  For some reason the properties don't update properly unless they are evaluated at this stage.  The return value is not used.
+        let properties = this.geoJson.features[0].properties;  // DO NOT REMOVE
+        return properties;
     }
 
     removeChoroplethProperty(propertyName){
-        var index = this.choroplethProperties.indexOf(propertyName);
+        this.removePropertyFromGeoJson(propertyName);
+        let index = this.choroplethProperties.indexOf(propertyName);
         this.choroplethProperties.splice(index, 1);
         if(this.choroplethProperties.length > 0){
             this.addChoroplethToMap();
         } else {
             this.removeGeoJsonLayer();
         }
+        // The code breaks without the below assignment.  I do not know why.  For some reason the properties don't update properly unless they are evaluated at this stage.
+        let properties = this.geoJson.features[0].properties;  // DO NOT REMOVE
+        return properties;
     }
 }
 
-// Code Execution -------------------------------------------------------------------------------
-
-var usStateGeoJson = usStateGeoJson;  // loaded from static file in analysis.html
-var choropleth = new Choropleth(usStateGeoJson);
-choropleth.infoLayer = addInfoBoxToMap(choropleth.map);
-choropleth.map.once('focus', function() { choropleth.map.scrollWheelZoom.enable(); });
-
-
-
-// Side Panel --------------------------------------------------------------------
-
-function toggleAttributes(e){
-    var attributesList;
-    if(e.id.slice(0,7) == 'default'){
-        attributesList = document.getElementById('default-data-attributes');
-    }
-    attributesList.style.display = (attributesList.style.display === 'none') ? 'block' : 'none';
+function showMapView(node){
+    makeMapNavButtonsInactive();
+    node.classList.toggle('btn-success');
+    node.classList.toggle('btn-outline-success');
+    hideById('table-view');
+    showById('map');
+    hideById('statistics-view');
 }
 
-function toggleSources(e){
-    var sourceList;
-    if(e.id.slice(0,7) == 'default'){
-        sourceList = document.getElementById('default-data-sources');
-    }
-    sourceList.style.display = (sourceList.style.display === 'none') ? 'block' : 'none';
-}
-
-function toggleYearList(e){
-    var attributeText = e.firstChild;
-    var yearList = attributeText.nextSibling
-    if(yearList.childNodes.length > 0){
-        while (yearList.firstChild) {
-            yearList.removeChild(yearList.firstChild);
-          }
-    } else {
-        var datasetId = e.dataset.sourceId
-        var url_string = SCRIPT_ROOT + 'get-attribute-years'
-        var url = new URL(url_string)
-        var attributeName = e.textContent.trim()
-        var params = {datasetId: datasetId, attributeName: attributeName}
-        url.search = new URLSearchParams(params)
-        fetch(url)
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(yearArray) {
-                yearArray.forEach(function(year){
-                    let btn = document.createElement('button');
-                    btn.className = 'list-group-item list-group-item-action list-group-item-light';
-                    btn.textContent = year;
-                    btn.dataset.sourceId = datasetId;
-                    btn.dataset.attributeName = attributeName;
-                    btn.addEventListener('click', selectAttribute);
-                    yearList.appendChild(btn);
-                });
-
-            });
-    }
-}
-
-function selectAttribute(e){
-    if(choropleth.choroplethProperties.length >= 2){
-        return;
-    }
-    var clickedEl = e.target;
-    var datasetId = clickedEl.dataset.sourceId;
-    var attributeName = clickedEl.dataset.attributeName;
-    var attributeYear = clickedEl.textContent.trim()
-    var url_string = SCRIPT_ROOT + 'get-data-attribute'
-    var url = new URL(url_string)
-    var params = {datasetId: datasetId, attributeName: attributeName, attributeYear: attributeYear}
-    url.search = new URLSearchParams(params)
-    fetch(url)
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(propertyJson) {
-            choropleth.addChoroplethProperty(propertyJson)
-            addAttributeToSidePanel(attributeName, attributeYear);
-            updateLegend(choropleth);
-        });
-
-    function addAttributeToSidePanel(attributeName, attributeYeear){
-        let attributeListEl = document.getElementById('selected-attributes');
-        let attributeWrapper = document.createElement('div');
-        let topRow = document.createElement('div');
-        topRow.className = 'row';
-        let attributeTextDiv = document.createElement('div');
-        attributeTextDiv.className = 'attribute-cell col-sm-12';
-        attributeTextDiv.textContent = attributeName;
-        let bottomRow = document.createElement('div');
-        bottomRow.className = 'row';
-        let yearDiv = document.createElement('div');
-        yearDiv.className = 'col-sm-8 attribute-cell';
-        yearDiv.textContent = attributeYeear;
-        let cancelDiv = document.createElement('div');
-        cancelDiv.className = 'attribute-remove-button col-sm-4 attribute-cell';
-        cancelDiv.textContent = 'remove';
-        cancelDiv.dataset.attributeName = attributeName;
-        cancelDiv.addEventListener('click', removeAttribute)
-        
-        attributeListEl.appendChild(attributeWrapper);
-        attributeWrapper.appendChild(topRow);
-        attributeWrapper.appendChild(bottomRow);
-        topRow.appendChild(attributeTextDiv);
-        bottomRow.appendChild(yearDiv);
-        bottomRow.appendChild(cancelDiv);
-    }
-}
-
-function removeAttribute(e){
-    var clickedEl = e.target;
-    var attributeName = clickedEl.dataset.attributeName;
-    var grandParent = clickedEl.parentNode.parentNode;
-    grandParent.parentNode.removeChild(grandParent);
-    choropleth.removeChoroplethProperty(attributeName);
-    updateLegend(choropleth);
-}
-
-function toggleSideBar(el){
-    var sidePanel = document.getElementById('map-side-panel');
-    if(el.checked){
-        sidePanel.style.display = 'block';
-    } else {
-        sidePanel.style.display = 'none';
-    }
-}
 
 // Info Box ------------------------------------------------------------------------------
 function addInfoBoxToMap(map){
@@ -317,16 +218,16 @@ function addInfoBoxToMap(map){
                 boxEl.appendChild(textFirst);
                 boxEl.appendChild(brSecond);
                 boxEl.appendChild(textSecond);
-            };
+            }
         } else {
             let text = document.createTextNode(`Hover over a state.`);
             boxEl.appendChild(text);
-        };
+        }
     };
 
     info.addTo(map);
     return info;
-};
+}
 
 // Legend ----------------------------------------------------------------------------------------------
 
@@ -415,7 +316,7 @@ function updateLegend(choropleth){
                 <rect id="medium-low" x="33" y="66" width="33" height="33" fill="${choropleth.colors.mediumLow}"/>
                 <rect id="low-low" x="66" y="66" width="33" height="33" fill="${choropleth.colors.lowLow}"/>
             </svg>
-            `
+            `;
             return outerTable;
         };
         legend.addTo(choropleth.map);
@@ -430,75 +331,319 @@ function removeLegend(choropleth){
     }
 }
 
+// Side Panel --------------------------------------------------------------------
 
-function updateLegend_deprecated(map){
-    if(state.legend){map.removeControl(state.legend)}
-    var legend = L.control({position: 'bottomright'});
-    if(state.activeMapLayerNames.length===0){
-        return null;
-    }else if(state.activeMapLayerNames.length===1){
-        legend.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'legend');
-            let legendTitle = document.createTextNode(state.activeMapLayerNames[0])
-            let colorOpaque = hexToRgba(state.colors.highLow,1);
-            let colorTransparent = hexToRgba(state.colors.highLow,0);
-            let gradientBar = document.createElement('i');
-            gradientBar.className = 'gradient-bar';
-            gradientBar.style.backgroundImage = `linear-gradient(to right, ${colorOpaque}, ${colorTransparent})`;
-            div.appendChild(legendTitle);
-            div.appendChild(gradientBar);
-            return div;
-        };
-    } else if (state.activeMapLayerNames.length===2){
-        legend.onAdd = function(map){
-            let outerTable = L.DomUtil.create('table', 'legend legend-big');
-            let topRow = document.createElement('tr');
-            topRow.className = 'legend-top-row';
-            outerTable.appendChild(topRow);
-            let topTd = document.createElement('td');
-            topTd.colSpan = '3';
-            topRow.appendChild(topTd);
-            let topText = document.createTextNode('Both');
-            topTd.appendChild(topText);
+class SidePanel {
+    constructor(choropleth){
+        this.selectedAttributes = [];
+        this.choropleth = choropleth;
+    }
 
-            let middleRow = document.createElement('tr');
-            middleRow.className = 'legend-middle-row';
-            outerTable.appendChild(middleRow);
-            let leftTd = document.createElement('td');
-            leftTd.setAttribute('id', 'legend-left-text');
-            middleRow.appendChild(leftTd);
-            let leftText = document.createTextNode(state.activeMapLayerNames[0]);
-            leftTd.appendChild(leftText);
-            let svgTd = document.createElement('td');
-            svgTd.setAttribute('id', 'legend-diamond');
-            middleRow.appendChild(svgTd);
-            let rightTd = document.createElement('td');
-            middleRow.appendChild(rightTd);
-            rightTd.setAttribute('id', 'legend-right-text');
-            let rightText = document.createTextNode(state.activeMapLayerNames[1]);
-            rightTd.appendChild(rightText);
-            svgTd.innerHTML = `
-            <svg width="99" height="99" xmlns="http://www.w3.org/2000/svg" 
-                transform="rotate(45) translate(0,0)" opacity="0.8">
-                <rect id="high-high" x="0" y="0" width="33" height="33" fill="${state.colors.highHigh}"/>
-                <rect id="medium-high" x="33" y="0" width="33" height="33" fill="${state.colors.medHigh}"/>
-                <rect id="low-high" x="66" y="0" width="33" height="33" fill="${state.colors.lowHigh}"/>
-                <rect id="high-medium" x="0" y="33" width="33" height="33" fill="${state.colors.highMed}"/>
-                <rect id="medium-medium" x="33" y="33" width="33" height="33" fill="${state.colors.medMed}"/>
-                <rect id="low-medium" x="66" y="33" width="33" height="33" fill="${state.colors.lowMed}"/>
-                <rect id="high-low" x="0" y="66" width="33" height="33" fill="${state.colors.highLow}"/>
-                <rect id="medium-low" x="33" y="66" width="33" height="33" fill="${state.colors.medLow}"/>
-                <rect id="low-low" x="66" y="66" width="33" height="33" fill="${state.colors.lowLow}"/>
-            </svg>
-            `
-            return outerTable;
-        };
-    };
+    async selectAttribute(e){
+        if(this.selectedAttributes.length >= 2){return;}
+        let attribute = {};
+        let clickedEl = e.target;
+        attribute.datasetId = clickedEl.dataset.sourceId;
+        attribute.attributeName = clickedEl.dataset.attributeName;
+        attribute.attributeYear = clickedEl.textContent.trim();
+        this.selectedAttributes.push(attribute);
+        const data = await this.getAttributeData(attribute);
+        this.choropleth.addChoroplethProperty(data);
+        this.addAttributeToSidePanel(attribute.attributeName, attribute.attributeYear);
+        renderTableView();
+        updateLegend(this.choropleth);
+    }
+
+    async getAttributeData(attribute){
+        let url_string = URL_ROOT + 'get-data-attribute';
+        let url = new URL(url_string);
+        let params = {datasetId: attribute.datasetId, attributeName: attribute.attributeName, attributeYear: attribute.attributeYear};
+        url.search = new URLSearchParams(params);
+        const response = await fetch(url);
+        const responseArray = await response.json();
+        return responseArray;
+    }
+
+    addAttributeToSidePanel(attributeName, attributeYeear){
+        let attributeListEl = document.getElementById('selected-attributes');
+        let attributeWrapper = document.createElement('div');
+        let topRow = document.createElement('div');
+        topRow.className = 'row';
+        let attributeTextDiv = document.createElement('div');
+        attributeTextDiv.className = 'attribute-cell col-sm-12';
+        attributeTextDiv.textContent = attributeName;
+        let bottomRow = document.createElement('div');
+        bottomRow.className = 'row';
+        let yearDiv = document.createElement('div');
+        yearDiv.className = 'col-sm-8 attribute-cell';
+        yearDiv.textContent = attributeYeear;
+        let cancelDiv = document.createElement('div');
+        cancelDiv.className = 'attribute-remove-button col-sm-4 attribute-cell';
+        cancelDiv.textContent = 'remove';
+        cancelDiv.dataset.attributeName = attributeName;
+        cancelDiv.addEventListener('click', this.removeAttribute.bind(this));
+        
+        attributeListEl.appendChild(attributeWrapper);
+        attributeWrapper.appendChild(topRow);
+        attributeWrapper.appendChild(bottomRow);
+        topRow.appendChild(attributeTextDiv);
+        bottomRow.appendChild(yearDiv);
+        bottomRow.appendChild(cancelDiv);
+    }
+
+    removeAttribute(e){
+        var clickedEl = e.target;
+        var attributeName = clickedEl.dataset.attributeName;
+        var grandParent = clickedEl.parentNode.parentNode;
+        grandParent.parentNode.removeChild(grandParent);
+        this.choropleth.removeChoroplethProperty(attributeName);
+        this.selectedAttributes = this.selectedAttributes.filter( attribute => attribute.attributeName != attributeName);
+        updateLegend(this.choropleth);
+        renderTableView();
+    }
+
+    toggleAttributes(e){
+        var attributesList;
+        if(e.id.slice(0,7) == 'default'){
+            attributesList = document.getElementById('default-data-attributes');
+        }
+        attributesList.style.display = (attributesList.style.display === 'none') ? 'block' : 'none';
+    }
     
-    legend.addTo(map);
-    return legend;
-};
+    toggleSources(e){
+        var sourceList;
+        if(e.id.slice(0,7) == 'default'){
+            sourceList = document.getElementById('default-data-sources');
+        }
+        sourceList.style.display = (sourceList.style.display === 'none') ? 'block' : 'none';
+    }
+    
+    async toggleYearList(e){
+        let attributeText = e.firstChild;
+        let yearList = attributeText.nextSibling;
+        const datasetId = e.dataset.sourceId;
+        const attributeName = e.textContent.trim();
+
+        let createYearButtons = yearArray => {
+            yearArray.forEach(function(year){
+                let btn = document.createElement('button');
+                btn.className = 'list-group-item list-group-item-action list-group-item-light';
+                btn.textContent = year;
+                btn.dataset.sourceId = datasetId;
+                btn.dataset.attributeName = attributeName;
+                btn.addEventListener('click', this.selectAttribute.bind(this));
+                yearList.appendChild(btn);
+            }.bind(this));
+
+        };
+
+        if(yearList.childNodes.length > 0){
+            deleteChildren(yearList);
+        } else {
+            const url_string = URL_ROOT + 'get-attribute-years';
+            let url = new URL(url_string);
+            const params = {datasetId: datasetId, attributeName: attributeName};
+            url.search = new URLSearchParams(params);
+            const response = await fetch(url);
+            const responseArray = await response.json();
+            createYearButtons(responseArray);
+        }
+    }
+    
+    toggleSideBar(){
+        let sidePanel = document.getElementById('map-side-panel');
+        sidePanel.classList.toggle('visible-panel');
+        sidePanel.classList.toggle('hidden-panel');
+        let toggleButton = document.getElementById('side-panel-toggle');
+        toggleButton.classList.toggle('visible-panel');
+        toggleButton.classList.toggle('hidden-panel');
+        let tableView = document.getElementById('table-view');
+        tableView.classList.toggle('table-small');
+        if (toggleButton.classList.contains('visible-panel')){
+            toggleButton.textContent = 'Hide';
+        } else {
+            toggleButton.textContent = 'Show';
+        }
+    }
+
+}
 
 
+// Code Execution -------------------------------------------------------------------------------
+
+var usStateGeoJson = usStateGeoJson;  // loaded from static file in analysis.html
+var choropleth = new Choropleth(usStateGeoJson);
+var sidePanel = new SidePanel(choropleth);
+choropleth.infoLayer = addInfoBoxToMap(choropleth.map);
+var sidePanelNode = document.getElementById('map-side-panel');
+sidePanelNode.addEventListener('pointerover', function() { choropleth.map.scrollWheelZoom.disable(); });
+sidePanelNode.addEventListener('pointerleave', function() { choropleth.map.scrollWheelZoom.enable(); });
 
 
+// Table View --------------------------------------------------------------------------------------
+
+function getTableData(){
+    let tableData = choropleth.geoJson.features.map( feature => feature.properties);
+    return tableData;
+}
+
+function renderTableView(){
+    let data = getTableData();
+    let tableView = document.getElementById('table-view');
+    deleteChildren(tableView);
+    let table = document.createElement('table');
+    table.className = 'table';
+    tableView.append(table);
+    let thead = document.createElement('thead');
+    table.appendChild(thead);
+    let trHead = document.createElement('tr');
+    thead.appendChild(trHead);
+    let keys = Object.keys(data[0]);
+    keys.forEach( function(key){
+        let th = document.createElement('th');
+        th.textContent = key;
+        trHead.appendChild(th);
+    });
+    let tbody = document.createElement('tbody');
+    table.appendChild(tbody);
+    data.forEach(function(row){
+        let tr = document.createElement('tr');
+        tbody.appendChild(tr);
+        keys.forEach(function(key){
+            let td = document.createElement('td');
+            td.textContent = row[key];
+            tr.appendChild(td);
+        });
+    });
+
+}
+
+function showTableView(node){
+    makeMapNavButtonsInactive();
+    node.classList.toggle('btn-success');
+    node.classList.toggle('btn-outline-success');
+    renderTableView();
+    hideById('map');
+    showById('table-view');
+    hideById('statistics-view');
+}
+
+function makeMapNavButtonsInactive(){
+    let nav = document.getElementById('data-nav');
+    let children = nav.getElementsByClassName('btn-success');
+    for (let child of children){
+        child.classList.remove('btn-success');
+        child.classList.add('btn-outline-success');
+    }
+}
+
+function hideById(id){
+    let node = document.getElementById(id);
+    node.classList.remove('visible');
+    node.classList.add('hidden');
+}
+
+function showById(id){
+    let node = document.getElementById(id);
+    node.classList.add('visible');
+    node.classList.remove('hidden');
+}
+
+function deleteChildren(node){
+    while (node.firstChild) {
+        node.removeChild(node.firstChild);
+      }
+}
+
+// Statistics View ---------------------------------------
+
+function showStatisticsView(node){
+    makeMapNavButtonsInactive();
+    node.classList.toggle('btn-success');
+    node.classList.toggle('btn-outline-success');
+    renderStatisticsView();
+    hideById('map');
+    hideById('table-view');
+    showById('statistics-view');
+}
+
+function getStatisticsData(){
+    let propertyNames = choropleth.choroplethProperties;
+    if(propertyNames.length == 0){return;}
+    let data = choropleth.geoJson.features.map( feature => filterProperties(feature.properties, propertyNames));
+
+    function filterProperties(propertyObj, propertyNames){
+        let newObj = {};
+        const regionName = propertyObj.NAME;
+        newObj.regionName = regionName;
+        newObj.propertyNames = propertyNames;
+        newObj.values = [];
+        propertyNames.forEach(function(property){
+            newObj.values.push(propertyObj[property]);
+        });
+        return newObj;
+    }
+    return data;
+}
+
+function generateSummaryStatistics(data){
+    let arr1 = data.map( item => item.values[0]).filter( item => item != null);
+    let statRows;
+
+    if(data[0].propertyNames.length > 1){
+        let arr2 = data.map( item => item.values[1]).filter( item => item != null);
+        statRows = generateMultiVectorStats(arr1, arr2);
+    } else {
+        statRows = generateSingleVectorStats(arr1);
+    }
+    console.log(statRows)
+    return statRows;
+
+    function generateSingleVectorStats(vector){
+        let statsArray = [];
+        statsArray.push(['Data Element Count', arr1.length]);
+        statsArray.push(['Mean', jStat.mean(vector)]);
+        statsArray.push(['Median', jStat.median(vector)]);
+        let mode = jStat.mode(vector);
+        let strMode = Array.isArray(mode) ? mode.join() : mode;
+        statsArray.push(['Mode', strMode]);
+        statsArray.push(['Min', jStat.min(vector)]);
+        statsArray.push(['Max', jStat.max(vector)]);
+        statsArray.push(['Range', jStat.range(vector)]);
+        statsArray.push(['Standard Deviation', jStat.stdev(vector)]);
+        let quartiles = jStat.quartiles(vector);
+        let iqr = quartiles[2] - quartiles[0];
+        statsArray.push(['Quartiles', quartiles.join()]);
+        statsArray.push(['Interquartile Range', iqr]);
+        statsArray.push(['Variance', jStat.variance(vector)]);
+
+        return statsArray;
+    }
+
+    function generateMultiVectorStats(vector1, vector2){
+        let statsArray1 = generateSingleVectorStats(vector1);
+        let statsArray2 = generateSingleVectorStats(vector2);
+        let fullStatsArray = statsArray1;
+        for(let i=0; i < statsArray1.length; i++){
+            fullStatsArray[i].push(statsArray2[i][1]);
+        }
+        // let correlation = jStat.corrcoeff(vector1, vector2);
+        // let r2 = Math.pow(correlation, 2);
+        // fullStatsArray.push(['Correlation', correlation]);
+        // fullStatsArray.push(['R Squared', r2]);
+        return fullStatsArray;
+    }
+
+}
+
+function renderStatisticsView(){
+    let data = getStatisticsData();
+    let statisticsView = document.getElementById('statistics-view');
+    if(data.length > 0){
+        generateSummaryStatistics(data);
+    }
+    
+    // deleteChildren(statisticsView);
+    
+
+}
