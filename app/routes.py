@@ -3,6 +3,9 @@ from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from app import app, db, models
 from app.forms import RegistrationForm, LoginForm
+from app.email import send_email
+from app.token import generate_confirmation_token, confirm_token
+from app import models
 import app.helpers as helpers
 
 
@@ -21,8 +24,11 @@ def login():
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password')
             return redirect(url_for('login'))
-        login_user(user, remember=form.remember_me.data)
-        return redirect(url_for('index'))
+        if user.is_email_authenticated:
+            login_user(user, remember=form.remember_me.data)
+            return redirect(url_for('index'))
+        else:
+            flash('Please authenticate email before signing in.')
     return render_template('login.html', title='Sign In', form=form)
 
 
@@ -39,24 +45,35 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = models.User(username=form.username.data, email=form.email.data)
+        user = models.User(username=form.username.data,
+                           email=form.email.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('Congratulations, you are now a registered user!')
+        token = generate_confirmation_token(user.email.lower())
+        confirm_url = url_for('confirm_email', token=token, _external=True)
+        html = render_template('activate.html', confirm_url=confirm_url)
+        subject = "Please confirm your email"
+        send_email(user.email, subject, html)
+        flash('A confirmation email has been sent via email.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route('/authenticate-email/<user_id>/<authentication_code>', methods=['GET'])
-def authenticate_email():
-    """
-    Verify Authentication Code
-    Update user to indicate email authenticated
-    Flash success message
-    redirect to login
-    """   
-    pass
+@app.route('/authenticate-email/<token>', methods=['GET'])
+def confirm_email(token):
+    try:
+        email = confirm_token(token)
+    except:
+        flash('The confirmation link is invalid or has expired.', 'danger')
+    user = models.User.query.filter_by(email=email).first_or_404()
+    if user.is_email_authenticated:
+        flash('Account already confirmed. Please login.', 'success')
+    else:
+        user.is_email_authenticated = True
+        db.session.commit()
+        flash('You have confirmed your account. Thanks!', 'success')
+    return redirect(url_for('login'))
 
 
 @app.route('/register-admin', methods=['POST'])
