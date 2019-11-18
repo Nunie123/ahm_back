@@ -216,10 +216,14 @@ button.dataset-btn{
 .table-small{
     margin-left: 400px !important;
 }
-#table-view td, #table-view th{
 
+/* STATISTICS VIEW -----------*/
+#statistics-view{
+    padding-left: 15px;
+    height: 100%;
+    flex: 1;
+    overflow-y: scroll;
 }
-
 
 
 /* Utility      */

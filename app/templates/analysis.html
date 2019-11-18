@@ -15,7 +15,9 @@
                 <map id="map" class="visible"></map>
                 <div id="table-view" class="hidden table-small"></div>
                 <div id="statistics-view" class="hidden table-small">
-                    {% include "partials/_statistics_table.html" %}
+                    <table id="statistics-table" class="table">
+                        <thead><tr><th>Select attributes to view summary statistics.</th></tr></thead>
+                    </table>
                 </div>
                 <aside> {% include "partials/_side_panel.html" %} </aside>
             </div>
