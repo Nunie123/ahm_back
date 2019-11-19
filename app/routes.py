@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from app import app, db, models
-from app.forms import RegistrationForm, LoginForm
+from app.forms import RegistrationForm, LoginForm, PasswordForm, EmailForm
 from app.email import send_email
 from app.token import generate_confirmation_token, confirm_token
 from app import models
@@ -58,6 +58,47 @@ def register():
         flash('A confirmation email has been sent via email.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
+
+@app.route('/reset', methods=["GET", "POST"])
+def reset():
+    form = EmailForm()
+    if form.validate_on_submit():
+        user = models.User.query.filter_by(email=form.email.data).first_or_404()
+        subject = "Password reset requested"
+        token = generate_confirmation_token(user.email.lower())
+        print(token)
+        recover_url = url_for(
+            'reset_with_token',
+            token=token,
+            _external=True)
+        print(recover_url)
+        html = render_template(
+            'recover.html',
+            recover_url=recover_url)
+        print('sending email')
+        send_email(user.email, subject, html)
+        flash('A reset link been sent via email.', 'success')
+        return redirect(url_for('index'))
+    return render_template('reset.html', form=form)
+
+
+@app.route('/reset/<token>', methods=["GET", "POST"])
+def reset_with_token(token):
+    try:
+        email = confirm_token(token)
+    except:
+        flash('The reset link is invalid or has expired.', 'danger')
+    form = PasswordForm()
+    if form.validate_on_submit():
+        user = models.User.query.filter_by(email=email).first_or_404()
+        user.set_password(form.password.data)
+        user.is_email_authenticated = True
+        db.session.add(user)
+        db.session.commit()
+        flash('Password reset.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('reset_with_token.html', title='Reset Password', form=form, token=token)
 
 
 @app.route('/authenticate-email/<token>', methods=['GET'])
