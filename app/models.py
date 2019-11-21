@@ -1,8 +1,11 @@
 import datetime
+
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlalchemy as sa
 from sqlalchemy_serializer import SerializerMixin
+from sqlalchemy.exc import IntegrityError
+
 from app import login, db
 import app.helpers as helpers
 
@@ -125,7 +128,7 @@ class GeographicAttribute(db.Model, SerializerMixin):
     attribute_value_type = db.Column(sa.Enum('percent', 'count', name='value_type', create_type=True), server_default='percent')
     attribute_year = db.Column(db.SmallInteger)
     attribute_relative_weight = db.Column(sa.Enum('high', 'medium', 'low', name='relative_weights', create_type=True))
-    __table_args__ = (db.UniqueConstraint('dataset_id', 'attribute_name', name='_dataset_attribute-name_uc'),)
+    __table_args__ = (db.UniqueConstraint('geo_code_id', 'attribute_name', 'attribute_year', 'dataset_id', name='_attribute_year_dataset_uc'),)
 
     @property
     def geo_name(self):
@@ -148,14 +151,18 @@ class GeographicAttribute(db.Model, SerializerMixin):
 
     
 
-class Map(db.Model):
+class Map(db.Model, SerializerMixin):
     __tablename__ = 'maps'
     map_id = db.Column(db.Integer, primary_key=True)
     primary_dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id') , nullable=False)
     secondary_dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id'))
+    attribute_name_1 = db.Column(db.Text, nullable=False)
+    attribute_name_2 = db.Column(db.Text)
+    attribute_year_1 = db.Column(db.SmallInteger, nullable=False)
+    attribute_year_2 = db.Column(db.SmallInteger)
     hex_color_1 = db.Column(db.Text)
     hex_color_2 = db.Column(db.Text)
-    title = db.Column(db.Text)
+    title = db.Column(db.Text, nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     is_public = db.Column(db.Boolean, server_default=sa.true())
     zoom_level = db.Column(db.Text)
@@ -164,9 +171,30 @@ class Map(db.Model):
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
     views = db.relationship('MapView', backref='map', lazy='dynamic')
-
     primary_dataset = db.relationship("GeographicDataset", foreign_keys=[primary_dataset_id])
     secondary_dataset = db.relationship("GeographicDataset", foreign_keys=[secondary_dataset_id])
+    __table_args__ = (db.UniqueConstraint('title', 'owner_id', name='_title_owner_uc'),)
+
+    def save(self, counter=0):
+        print('title:', self.title)
+        print('counter:', counter)
+        try:
+            print('trying')
+            db.session.add(self)
+            db.session.commit()
+            print('try succeeded')
+        except IntegrityError as e:
+            db.session.rollback()
+            print(f'violation!!!!!: ')
+            counter += 1
+            if counter > 1:
+                self.title = self.title[:-2] + f'{counter})'
+            else:
+                self.title += f'({counter})'
+            print(self.title)
+            self.save(counter)
+
+
 
 
 class MapView(db.Model):

@@ -99,6 +99,39 @@ def analysis():
                             , user_dataset_list=user_datasets
                             , favorite_dataset_list=favorite_datasets)
 
+@login_required
+@app.route('/analysis/save', methods=['POST'])
+def save_map():
+    params = request.get_json()
+    params['owner_id'] = current_user.user_id
+    if params.get('mapId'):
+        user_map = models.Map.query.get(params.get('mapId'))
+    else:
+        user_map = models.Map()
+        db.session.add(user_map)
+    user_map.primary_dataset_id = params.get('dataset1')
+    user_map.secondary_dataset_id = params.get('dataset2')
+    user_map.attribute_name_1 = params.get('attribute1')
+    user_map.attribute_name_2 = params.get('attribute2')
+    user_map.attribute_year_1 = params.get('year1')
+    user_map.attribute_year_2 = params.get('year2')
+    user_map.hex_color_1 = params.get('color1')
+    user_map.hex_color_2 = params.get('color2')
+    user_map.title = params.get('title', '')
+    user_map.owner_id = params.get('owner_id')
+    user_map.is_public = params.get('isPublic')
+    user_map.zoom_level = params.get('zoom')
+    user_map.center_coordinates = params.get('coordinates')
+    user_map.save()
+
+    return jsonify(success=True)
+
+@app.route('/analysis/<map_id>', methods=['GET'])
+def get_map(map_id):
+    user_map = models.Map.get(map_id)
+    map_dict = user_map.to_dict(rules=('-primary_dataset', '-secondary_dataset'))
+    return jsonify(map_dict)
+
 @app.route('/get-attribute-years', methods=['GET'])
 def get_attribute_year():
     dataset_id = request.args.get('datasetId')

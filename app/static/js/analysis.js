@@ -51,7 +51,7 @@ class Choropleth {
     getColor(feature){
         var color;
         if(this.choroplethProperties.length == 1){
-            let rank = feature.properties[`${this.choroplethProperties[0]} relative rank`];
+            let rank = feature.properties[`${this.choroplethProperties[0].propertyName} relative rank`];
             if(rank){
                 color = rank == 'high' ? this.colors.highHigh : 
                 rank == 'medium' ? this.colors.mediumMedium : this.colors.lowLow;
@@ -60,8 +60,8 @@ class Choropleth {
             }
             
         } else {
-            let rank1 = feature.properties[`${this.choroplethProperties[0]} relative rank`];
-            let rank2 = feature.properties[`${this.choroplethProperties[1]} relative rank`];
+            let rank1 = feature.properties[`${this.choroplethProperties[0].propertyName} relative rank`];
+            let rank2 = feature.properties[`${this.choroplethProperties[1].propertyName} relative rank`];
             if(rank1 && rank2){
                 let capitalRank2 = rank2[0].toUpperCase() + rank2.slice(1);
                 let combinedRank = rank1 + capitalRank2;
@@ -155,9 +155,12 @@ class Choropleth {
     }
 
     addChoroplethProperty(propertyJson){
-        var propertyName = propertyJson[0].attribute_name;
         if(this.choroplethProperties.length < 2){
-            this.choroplethProperties.push(propertyName);
+            let property = {};
+            property.propertyName = propertyJson[0].attribute_name;
+            property.propertyYear = propertyJson[0].attribute_year;
+            property.datasetId = propertyJson[0].dataset_id;
+            this.choroplethProperties.push(property);
             this.addPropertyToGeoJson(propertyJson);
             this.addChoroplethToMap();
         }
@@ -168,8 +171,7 @@ class Choropleth {
 
     removeChoroplethProperty(propertyName){
         this.removePropertyFromGeoJson(propertyName);
-        let index = this.choroplethProperties.indexOf(propertyName);
-        this.choroplethProperties.splice(index, 1);
+        this.choroplethProperties = this.choroplethProperties.filter( property => property.propertyName != propertyName);
         if(this.choroplethProperties.length > 0){
             this.addChoroplethToMap();
         } else {
@@ -188,6 +190,30 @@ function showMapView(node){
     hideById('table-view');
     showById('map');
     hideById('statistics-view');
+}
+
+async function saveMap(){
+    if(choropleth.choroplethProperties.length == 0){return;}
+    let mapDetails = {};
+    mapDetails.dataset1 = choropleth.choroplethProperties[0].datasetId;
+    mapDetails.attribute1 = choropleth.choroplethProperties[0].propertyName;
+    mapDetails.year1 = choropleth.choroplethProperties[0].propertyYear;
+    mapDetails.color1 = choropleth.colors.highLow;
+    if(choropleth.choroplethProperties.length == 2){
+        mapDetails.dataset2 = choropleth.choroplethProperties[1].datasetId;
+        mapDetails.attribute2 = choropleth.choroplethProperties[1].propertyName;
+        mapDetails.year2 = choropleth.choroplethProperties[1].propertyYear;
+        mapDetails.color2 = choropleth.colors.lowHigh;
+    }
+    mapDetails.title = document.getElementById('map-title').value;
+    mapDetails.isPublic = true;
+    mapDetails.zoom = choropleth.map.getZoom();
+    let latLon = choropleth.map.getCenter();
+    mapDetails.coordinates = [latLon.lat, latLon.lng];
+
+    const url = `${SCRIPT_ROOT}analysis/save`;
+    const response = await postData(url, mapDetails);   //function from upload_data.js
+
 }
 
 
@@ -210,10 +236,11 @@ function addInfoBoxToMap(map){
             let headerText = document.createTextNode(props.NAME);
             boxEl.appendChild(headerText);
             for(let i=0; i<choropleth.choroplethProperties.length; i++){
+                let propertyName = choropleth.choroplethProperties[i].propertyName;
                 let brFirst = document.createElement('br');
-                let textFirst = document.createTextNode(choropleth.choroplethProperties[i] + ': ' + props[choropleth.choroplethProperties[i]]);
+                let textFirst = document.createTextNode(propertyName + ': ' + props[propertyName]);
                 let brSecond = document.createElement('br');
-                let textSecond = document.createTextNode(choropleth.choroplethProperties[i] + ' rank: ' + props[choropleth.choroplethProperties[i] + ' relative rank']);
+                let textSecond = document.createTextNode(propertyName + ' rank: ' + props[propertyName + ' relative rank']);
                 boxEl.appendChild(brFirst);
                 boxEl.appendChild(textFirst);
                 boxEl.appendChild(brSecond);
@@ -293,7 +320,7 @@ function updateLegend(choropleth){
             let leftTd = document.createElement('td');
             leftTd.setAttribute('id', 'legend-left-text');
             middleRow.appendChild(leftTd);
-            let leftText = document.createTextNode(choropleth.choroplethProperties[0]);
+            let leftText = document.createTextNode(choropleth.choroplethProperties[0].propertyName);
             leftTd.appendChild(leftText);
             let svgTd = document.createElement('td');
             svgTd.setAttribute('id', 'legend-diamond');
@@ -301,7 +328,7 @@ function updateLegend(choropleth){
             let rightTd = document.createElement('td');
             middleRow.appendChild(rightTd);
             rightTd.setAttribute('id', 'legend-right-text');
-            let rightText = document.createTextNode(choropleth.choroplethProperties[1]);
+            let rightText = document.createTextNode(choropleth.choroplethProperties[1].propertyName);
             rightTd.appendChild(rightText);
             svgTd.innerHTML = `
             <svg width="99" height="99" xmlns="http://www.w3.org/2000/svg" 
@@ -570,7 +597,7 @@ function showStatisticsView(node){
 }
 
 function getStatisticsData(){
-    let propertyNames = choropleth.choroplethProperties;
+    let propertyNames = choropleth.choroplethProperties.map( property => property.propertyName);
     if(propertyNames.length == 0){return;}
     let data = choropleth.geoJson.features.map( feature => filterProperties(feature.properties, propertyNames));
 

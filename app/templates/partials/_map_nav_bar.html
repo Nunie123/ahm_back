@@ -3,14 +3,20 @@
         <button class="btn btn-success" type="button" onclick="showMapView(this)">Map</button>
         <button class="btn btn-outline-success" type="button" onclick="showTableView(this)">Table</button>
         <button class="btn btn-outline-success" type="button" onclick="showStatisticsView(this)">Statistics</button>
-        <!-- <button class="btn btn-outline-success" type="button">Customize</button> -->
     </form>
     <form class="form-inline my-2 my-sm-0">
+        <label id="map-title-label">Title:</label>
+        <input type="text" placeholder="Map Title" value="Untitled Map" class="form-control" id="map-title">
         {% if current_user.is_authenticated %}
+        <button type="button" class="btn btn-outline-info my-2 my-sm-0" onclick="saveMap()">Save</button>
         <button type="button" data-toggle="modal" data-target="#import-modal"
             class="btn btn-outline-info my-2 my-sm-0" onclick="clearModal()">Import Dataset
         </button>
         {% else %}
+        <button class="btn btn-outline-info my-2 my-sm-0 tooltips" disabled>
+            Save
+            <span class="tooltiptext">Must be logged in to save map.</span>
+        </button>
         <button type="button" data-toggle="modal" data-target="#import-modal"
             class="btn btn-outline-info my-2 my-sm-0 tooltips" onclick="clearModal()" disabled>Import Dataset
             <span class="tooltiptext">Must be logged in to import data.</span>
@@ -30,6 +36,5 @@
                 <a class="dropdown-item" href="#">Data as GeoJSON</a>
             </div>
         </div>
-        <button class="btn btn-outline-info my-2 my-sm-0">Save</button>
     </form>
 </nav>
