@@ -9,6 +9,7 @@
         <input type="text" placeholder="Map Title" value="Untitled Map" class="form-control" id="map-title">
         {% if current_user.is_authenticated %}
         <button type="button" class="btn btn-outline-info my-2 my-sm-0" onclick="saveMap()">Save</button>
+        <button type="button" class="btn btn-outline-info my-2 my-sm-0" onclick="saveMap(true)">Save As</button>
         <button type="button" data-toggle="modal" data-target="#import-modal"
             class="btn btn-outline-info my-2 my-sm-0" onclick="clearModal()">Import Dataset
         </button>
