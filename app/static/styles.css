@@ -26,6 +26,9 @@ main, .outer-container, #data-content, #data-view {
     margin:0;
     padding: 0;
 }
+#map-title-label{
+    padding-right: 5px;
+}
 
 /* SIDEBAR */
 #map-side-panel {
