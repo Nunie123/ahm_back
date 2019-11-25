@@ -176,22 +176,17 @@ class Map(db.Model, SerializerMixin):
     __table_args__ = (db.UniqueConstraint('title', 'owner_id', name='_title_owner_uc'),)
 
     def save(self, counter=0):
-        print('title:', self.title)
-        print('counter:', counter)
         try:
-            print('trying')
-            db.session.add(self)
+            if not self.map_id:
+                db.session.add(self)
             db.session.commit()
-            print('try succeeded')
         except IntegrityError as e:
             db.session.rollback()
-            print(f'violation!!!!!: ')
             counter += 1
             if counter > 1:
                 self.title = self.title[:-2] + f'{counter})'
             else:
                 self.title += f'({counter})'
-            print(self.title)
             self.save(counter)
 
 

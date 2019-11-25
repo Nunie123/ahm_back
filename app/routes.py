@@ -140,6 +140,20 @@ def analysis():
                             , user_dataset_list=user_datasets
                             , favorite_dataset_list=favorite_datasets)
 
+@app.route('/analysis/<map_id>', methods=['GET'])
+def get_map(map_id):
+    user_map = models.Map.query.get(map_id)
+    map_dict = user_map.to_dict(rules=('-primary_dataset', '-secondary_dataset'))
+    default_datasets = models.GeographicDataset.query.filter_by(display_by_default=True).all()
+    serialized_default = [row.to_dict(rules=('-geographic_attributes', 'distinct_geographic_attribute_names')) for row in default_datasets]
+    user_datasets = []
+    favorite_datasets = []
+    return render_template('analysis.html'
+                            , default_dataset_list=serialized_default
+                            , user_dataset_list=user_datasets
+                            , favorite_dataset_list=favorite_datasets
+                            , preloaded_map=map_dict)
+
 @login_required
 @app.route('/analysis/save', methods=['POST'])
 def save_map():
@@ -165,13 +179,13 @@ def save_map():
     user_map.center_coordinates = params.get('coordinates')
     user_map.save()
 
-    return jsonify(success=True)
+    return jsonify(success=True, map_id=user_map.map_id)
 
-@app.route('/analysis/<map_id>', methods=['GET'])
-def get_map(map_id):
-    user_map = models.Map.get(map_id)
-    map_dict = user_map.to_dict(rules=('-primary_dataset', '-secondary_dataset'))
-    return jsonify(map_dict)
+@app.route('/maps', methods=['GET'])
+def maps():
+    return render_template('maps.html')
+
+
 
 @app.route('/get-attribute-years', methods=['GET'])
 def get_attribute_year():
@@ -192,6 +206,10 @@ def get_data_attribute():
     attribute_list = models.GeographicAttribute.query.filter_by(dataset_id=dataset_id, attribute_name=attribute_name, attribute_year=attribute_year)
     serialized_list = [row.to_dict(rules=('-geographic_dataset', '-geo_code', 'geo_name')) for row in attribute_list]
     return jsonify(serialized_list)
+
+@app.route('/datasets', methods=['GET'])
+def datasets():
+    return render_template('datasets.html')
 
 @login_required
 @app.route('/save-dataset', methods=['POST'])

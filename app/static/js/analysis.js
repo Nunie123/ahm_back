@@ -19,17 +19,21 @@ class Choropleth {
         lowMedium: '#E094C1',   //light red-purple
         lowLow: '#F3E4F7'    //light purple
     }){
-        this.map = this.createMap();
         this.geoJson = geoJson;
         this.colors = colors;
         this.choroplethProperties = [];
         this.infoLayer = null;
         this.legend = null;
+        this.mapId = null;
+        this.title = null;
+        this.center = [37.8, -96];
+        this.zoom = 4;
+        this.map = this.createMap();
     }
 
     createMap(){
-        const mapboxAccessToken = 'pk.eyJ1IjoibnVuaWUxMjMiLCJhIjoiY2pscmNpNWNmMDNvMzNxbm5rOGI1cWhvZyJ9.TilZiY3pDTd9BZpagtnHiw';
-        var map = L.map('map').setView([37.8, -96], 4);
+        const mapboxAccessToken = 'pk.eyJ1IjoibnVuaWUxMjMiLCJhIjoiY2szY2g3MXVvMG0xcTNucGljYmYwd3J5dCJ9.rLs2Z8DQSEcYANrpZfyjuQ';
+        var map = L.map('map').setView(this.center, this.zoom);
     
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=' + mapboxAccessToken, {
             id: 'mapbox.light', attribution: '© Mapbox, © OpenStreetMap'
@@ -192,8 +196,9 @@ function showMapView(node){
     hideById('statistics-view');
 }
 
-async function saveMap(){
+async function saveMap(saveAsNew=false){
     if(choropleth.choroplethProperties.length == 0){return;}
+
     let mapDetails = {};
     mapDetails.dataset1 = choropleth.choroplethProperties[0].datasetId;
     mapDetails.attribute1 = choropleth.choroplethProperties[0].propertyName;
@@ -210,10 +215,42 @@ async function saveMap(){
     mapDetails.zoom = choropleth.map.getZoom();
     let latLon = choropleth.map.getCenter();
     mapDetails.coordinates = [latLon.lat, latLon.lng];
+    if(!saveAsNew){
+        mapDetails.mapId = choropleth.mapId;
+    }
 
     const url = `${SCRIPT_ROOT}analysis/save`;
     const response = await postData(url, mapDetails);   //function from upload_data.js
+    choropleth.mapId = response.map_id;
 
+}
+
+function loadMap(choropleth, sidePanel){
+    if(PRELOADED_MAP){
+        choropleth.mapId = PRELOADED_MAP.map_id;
+        let title = PRELOADED_MAP.title
+        choropleth.title = title;
+        document.getElementById('map-title').value = title;
+        let zoom = PRELOADED_MAP.zoom_level
+        choropleth.zoom = zoom;
+        let coordinates = PRELOADED_MAP.center_coordinates;
+        let commaIndex = coordinates.indexOf(',');
+        let center = Array(coordinates.slice(1, commaIndex), coordinates.slice(commaIndex+1, -1));
+        choropleth.center = center;
+        choropleth.map.setView(center, zoom);
+        let dataset1 = {};
+        dataset1.attributeName = PRELOADED_MAP.attribute_name_1;
+        dataset1.attributeYear = PRELOADED_MAP.attribute_year_1;
+        dataset1.datasetId = PRELOADED_MAP.primary_dataset_id;
+        sidePanel.processAttribute(dataset1);
+        if(PRELOADED_MAP.secondary_dataset_id){
+            let dataset2 = {};
+            dataset2.attributeName = PRELOADED_MAP.attribute_name_2;
+            dataset2.attributeYear = PRELOADED_MAP.attribute_year_2;
+            dataset2.datasetId = PRELOADED_MAP.primary_dataset_id;
+            sidePanel.processAttribute(dataset2);
+        }
+    }
 }
 
 
@@ -373,6 +410,10 @@ class SidePanel {
         attribute.datasetId = clickedEl.dataset.sourceId;
         attribute.attributeName = clickedEl.dataset.attributeName;
         attribute.attributeYear = clickedEl.textContent.trim();
+        this.processAttribute(attribute);
+    }
+
+    async processAttribute(attribute){
         this.selectedAttributes.push(attribute);
         const data = await this.getAttributeData(attribute);
         this.choropleth.addChoroplethProperty(data);
@@ -507,6 +548,8 @@ choropleth.infoLayer = addInfoBoxToMap(choropleth.map);
 var sidePanelNode = document.getElementById('map-side-panel');
 sidePanelNode.addEventListener('pointerover', function() { choropleth.map.scrollWheelZoom.disable(); });
 sidePanelNode.addEventListener('pointerleave', function() { choropleth.map.scrollWheelZoom.enable(); });
+loadMap(choropleth, sidePanel);
+console.log(choropleth)
 
 
 // Table View --------------------------------------------------------------------------------------
