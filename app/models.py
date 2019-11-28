@@ -98,6 +98,14 @@ class GeographicDataset(db.Model, SerializerMixin):
     geographic_attributes = db.relationship('GeographicAttribute', backref='geographic_dataset', lazy='dynamic')
     views = db.relationship('GeographicDatasetView', backref='geographic_dataset', lazy='dynamic')
 
+    def __init__(self, dataset):
+        self.owner_id = dataset['owner_id']
+        self.name = dataset['name']
+        self.description = dataset['description']
+        self.organization = dataset['organization']
+        self.url = dataset['url']
+        self.is_public = dataset['is_public']
+
     @property
     def geographic_attributes_dict(self):
         return [helpers.convert_row_to_dict(row) for row in self.geographic_attributes]
@@ -116,6 +124,8 @@ class GeographicDataset(db.Model, SerializerMixin):
         #     distinct_attribute_list.append(attribute_dict)
         # print(distinct_attribute_list)
         return distinct_attribute_list
+
+
 
 
 class GeographicAttribute(db.Model, SerializerMixin):
@@ -146,8 +156,12 @@ class GeographicAttribute(db.Model, SerializerMixin):
             row['attribute_value_type'] = 'percent'
             row['attribute_year'] = attribute.get('atrribute-year')
             insert_list.append(row)
-        db.session.execute(GeographicAttribute.__table__.insert(), insert_list)
-        db.session.commit()
+            # insert_list = [{k: v for d in insert_list for k, v in d.items() if v is not None}]
+        # This was the only way I could get the import to work. I think there is a problem with the csv parsing.
+        for row in insert_list:
+            if row['attribute_value'] is not None:
+                db.session.execute(GeographicAttribute.__table__.insert(), row)
+                db.session.commit()
 
     
 

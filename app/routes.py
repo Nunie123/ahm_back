@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
+from sqlalchemy.orm.session import make_transient_to_detached
 from app import app, db, models
 from app.forms import RegistrationForm, LoginForm, PasswordForm, EmailForm
 from app.email import send_email
@@ -133,11 +134,13 @@ def register_admin():
 def analysis():
     default_datasets = models.GeographicDataset.query.filter_by(display_by_default=True).all()
     serialized_default = [row.to_dict(rules=('-geographic_attributes', 'distinct_geographic_attribute_names')) for row in default_datasets]
-    user_datasets = []
+    user_datasets = models.GeographicDataset.query.filter_by(owner_id=current_user.user_id).all()
+    user_datasets = [row.to_dict(rules=('-geographic_attributes', 'distinct_geographic_attribute_names')) for row
+                          in user_datasets]
     favorite_datasets = []
     return render_template('analysis.html'
                             , default_dataset_list=serialized_default
-                            , user_dataset_list=user_datasets
+                            , personal_dataset_list=user_datasets
                             , favorite_dataset_list=favorite_datasets)
 
 @app.route('/analysis/<map_id>', methods=['GET'])
@@ -220,9 +223,11 @@ def save_dataset():
     dataset_dict.pop('year', None)
     attributes = data['data']
 
-    dataset = models.GeographicDataset(**dataset_dict)
+    dataset = models.GeographicDataset(dataset_dict)
+    db.session.add(dataset)
+    db.session.commit()
     models.GeographicAttribute.bulk_insert(attributes, dataset.geographic_dataset_id)
-    return  jsonify(success=True)
+    return jsonify(success=True)
     # try:
     #     dataset = models.GeographicDataset(**dataset_dict)
     #     db.session.add(dataset)
