@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "C:\\Users\\E.Nunes\\miniconda3\\envs\\ahm-back\\python.exe",
+    "python.pythonPath": "/Users/nunes/miniconda3/envs/ahm-back/bin/python",
     "jshint.options": {"esversion": 8, "browser": true}
 }
