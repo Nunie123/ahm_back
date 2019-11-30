@@ -1,7 +1,8 @@
 "use strict";
 
+
 var L = L;  // imported from leaflet
-var URLSearchParams = window.URLSearchParams;  //JSHint doesn't recognize global object
+var URLSearchParams = window.URLSearchParams;  //JSHint doesn't recognize this global object
 var URL_ROOT = SCRIPT_ROOT;  //imported from jinja template
 var jStat = jStat;  //imported from jstat
 
@@ -570,7 +571,6 @@ var sidePanelNode = document.getElementById('map-side-panel');
 sidePanelNode.addEventListener('pointerover', function() { choropleth.map.scrollWheelZoom.disable(); });
 sidePanelNode.addEventListener('pointerleave', function() { choropleth.map.scrollWheelZoom.enable(); });
 loadMap(choropleth, sidePanel);
-console.log(choropleth)
 
 
 // Table View --------------------------------------------------------------------------------------

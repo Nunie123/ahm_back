@@ -186,7 +186,7 @@ button.dataset-btn{
     visibility: hidden;
     width: fit-content;
     max-width: 350px;
-    background-color: #555;
+    background-color: #000;
     color: #fff;
     text-align: left;
     padding: 5px;
@@ -197,7 +197,7 @@ button.dataset-btn{
     position: absolute;
     z-index: 1;
     bottom: 125%;
-    margin-left: -60px;
+    margin-left: -170px;
   
     /* Fade in tooltip */
     opacity: 0;

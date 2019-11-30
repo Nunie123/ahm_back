@@ -8,21 +8,27 @@
         <label id="map-title-label">Title:</label>
         <input type="text" placeholder="Map Title" value="Untitled Map" class="form-control" id="map-title">
         {% if current_user.is_authenticated %}
-        <button type="button" class="btn btn-outline-info my-2 my-sm-0" onclick="saveMap()">Save</button>
-        <button type="button" class="btn btn-outline-info my-2 my-sm-0" onclick="saveMap(true)">Save As</button>
-        <button type="button" data-toggle="modal" data-target="#import-modal"
-            class="btn btn-outline-info my-2 my-sm-0" onclick="clearModal()">Import Dataset
-        </button>
+            {% set tooltip_class = '' %}
+            {% set disabled = '' %}
+            {% set span_style = 'style=display:none;' %}
         {% else %}
-        <button class="btn btn-outline-info my-2 my-sm-0 tooltips" disabled>
-            Save
-            <span class="tooltiptext">Must be logged in to save map.</span>
-        </button>
-        <button type="button" data-toggle="modal" data-target="#import-modal"
-            class="btn btn-outline-info my-2 my-sm-0 tooltips" onclick="clearModal()" disabled>Import Dataset
-            <span class="tooltiptext">Must be logged in to import data.</span>
-        </button>
+            {% set tooltip_class = 'tooltips' %}
+            {% set disabled = 'disabled' %}
+            {% set span_style = '' %}
         {% endif %}
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" onclick="saveMap()" {{ disabled }}>
+                Save
+                <span class="tooltiptext" {{ span_style }}>Must be logged in to save map.</span>
+            </button>
+            <button type="button" class="btn btn-outline-info my-2 my-sm-0 dropdown-toggle dropdown-toggle-split" 
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" {{ disabled }}>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="javascript:;" onclick="saveMap(true)">Save as New</a>
+            </div>
+        </div>
         <div class="dropdown">
             <button class="btn btn-outline-info dropdown-toggle" type="button" id="dropdownMenuButton"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -37,5 +43,10 @@
                 <a class="dropdown-item" href="#">Data as GeoJSON</a>
             </div>
         </div>
+        <button type="button" data-toggle="modal" data-target="#import-modal"
+            class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" onclick="clearModal()" {{ disabled }}>
+            Import Dataset
+            <span class="tooltiptext" {{ span_style }}>Must be logged in to import data.</span> 
+        </button>
     </form>
 </nav>

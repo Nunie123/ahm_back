@@ -31,7 +31,6 @@
         {% if preloaded_map %}
         PRELOADED_MAP = {{ preloaded_map|tojson|safe}};
         {% endif %}
-        console.log(PRELOADED_MAP)
     </script>
 <script src="{{ url_for('static',filename='js/us_state_geojson.js') }}"></script>
 <script src="{{ url_for('static',filename='js/analysis.js') }}"></script>
