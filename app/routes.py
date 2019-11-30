@@ -135,9 +135,12 @@ def register_admin():
 def analysis():
     default_datasets = models.GeographicDataset.query.filter_by(display_by_default=True).all()
     serialized_default = [row.to_dict(rules=('-geographic_attributes', 'distinct_geographic_attribute_names')) for row in default_datasets]
-    user_datasets = models.GeographicDataset.query.filter_by(owner_id=current_user.user_id).all()
-    user_datasets = [row.to_dict(rules=('-geographic_attributes', 'distinct_geographic_attribute_names')) for row
-                          in user_datasets]
+    if current_user.is_authenticated:
+        user_datasets = models.GeographicDataset.query.filter_by(owner_id=current_user.user_id).all()
+        user_datasets = [row.to_dict(rules=('-geographic_attributes', 'distinct_geographic_attribute_names')) for row
+                            in user_datasets]
+    else:
+        user_datasets = []
     favorite_datasets = []
     return render_template('analysis.html'
                             , default_dataset_list=serialized_default
