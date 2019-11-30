@@ -219,10 +219,31 @@ async function saveMap(saveAsNew=false){
         mapDetails.mapId = choropleth.mapId;
     }
 
-    const url = `${SCRIPT_ROOT}analysis/save`;
-    const response = await postData(url, mapDetails);   //function from upload_data.js
-    choropleth.mapId = response.map_id;
+    const url = `${URL_ROOT}analysis/save`;
+    const dataResponse = await postData(url, mapDetails);   //function from upload_data.js
+    choropleth.mapId = dataResponse.map_id;
 
+    const imageResponse = await saveMapImage();
+        
+}
+
+async function saveMapImage(){
+    const mapImage = await generateMapImage();
+    const imageUrl = `${URL_ROOT}analysis/9/save-thumbnail`;
+    const imageResponse = await fetch(imageUrl, {
+        method: 'POST',
+        body: mapImage
+    });
+    return imageResponse;
+}
+
+async function generateMapImage(){
+    let node = document.getElementById('map');
+    // let img = new Image();
+    let dataUrl = await domtoimage.toJpeg(node, { quality: 0.15});
+    // img.src = dataUrl;
+    // return img;
+    return dataUrl;
 }
 
 function loadMap(choropleth, sidePanel){

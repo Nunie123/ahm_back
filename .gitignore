@@ -6,6 +6,8 @@ secrets.ini
 preloaded_data/raw_data/
 node_modules/
 data/
+package-lock.json
+settings.json
 
 # GitHub template from https://github.com/github/gitignore/blob/master/Python.gitignore
 

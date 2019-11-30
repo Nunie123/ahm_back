@@ -1,4 +1,5 @@
 from datetime import datetime
+import base64
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from sqlalchemy.orm.session import make_transient_to_detached
@@ -184,11 +185,31 @@ def save_map():
 
     return jsonify(success=True, map_id=user_map.map_id)
 
+@login_required
+@app.route('/analysis/<int:map_id>/save-thumbnail', methods=['POST'])
+def save_thumbnail(map_id):
+    raw_image = request.data
+    image_data = raw_image[raw_image.find(b'base64')+7:]
+    user_map = models.Map.query.get(map_id)
+    filename = f'{user_map.title}_{map_id}.jpg'
+    filepath = f'app/static/thumbnails/{filename}'
+    with open(filepath, "wb") as fh:
+        fh.write(base64.decodestring(image_data))
+    user_map.map_thumbnail_link = filename
+    db.session.commit()
+    return jsonify(success=True)
+
+@app.route('/analysis/<int:map_id>/get-thumbnail-url', methods=['GET'])
+def get_thumbnail_url(map_id):
+    user_map = models.Map.query.get(map_id)
+    filename = user_map.map_thumbnail_link
+    url = url_for('static', filename=f'thumbnails/{filename}', _external=True)
+    print(url)
+    return jsonify(success=True, url=url)
+
 @app.route('/maps', methods=['GET'])
 def maps():
     return render_template('maps.html')
-
-
 
 @app.route('/get-attribute-years', methods=['GET'])
 def get_attribute_year():
@@ -228,15 +249,6 @@ def save_dataset():
     db.session.commit()
     models.GeographicAttribute.bulk_insert(attributes, dataset.geographic_dataset_id)
     return jsonify(success=True)
-    # try:
-    #     dataset = models.GeographicDataset(**dataset_dict)
-    #     db.session.add(dataset)
-    #     db.session.commit()
-    #     models.GeographicAttribute.bulk_insert(attributes, dataset.geographic_dataset_id)
-    #     return jsonify(success=True)
-    # except Exception as e:
-    #     print(e)
-    #     return jsonify(success=False)
 
 
 @app.route('/explore', methods=['GET', 'POST'])
