@@ -1,8 +1,8 @@
 <nav class="navbar navbar-light bg-light" id="data-nav">
     <form class="form-inline">
-        <button class="btn btn-success" type="button" onclick="showMapView(this)">Map</button>
-        <button class="btn btn-outline-success" type="button" onclick="showTableView(this)">Table</button>
-        <button class="btn btn-outline-success" type="button" onclick="showStatisticsView(this)">Statistics</button>
+        <button class="btn btn-success" type="button" id="map-view-button">Map</button>
+        <button class="btn btn-outline-success" type="button" id="table-view-button">Table</button>
+        <button class="btn btn-outline-success" type="button" id="statistics-view-button">Statistics</button>
     </form>
     <form class="form-inline my-2 my-sm-0">
         <label id="map-title-label">Title:</label>
@@ -17,7 +17,7 @@
             {% set span_style = '' %}
         {% endif %}
         <div class="btn-group">
-            <button type="button" class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" onclick="saveMap()" {{ disabled }}>
+            <button type="button" class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" id="save-map-button" data-saveAsNew="no" {{ disabled }}>
                 Save
                 <span class="tooltiptext" {{ span_style }}>Must be logged in to save map.</span>
             </button>
@@ -26,7 +26,7 @@
                 <span class="sr-only">Toggle Dropdown</span>
             </button>
             <div class="dropdown-menu">
-                <a class="dropdown-item" href="javascript:;" onclick="saveMap(true)">Save as New</a>
+                <a class="dropdown-item" href="javascript:;" id="save-as-map-button" data-saveAsNew="yes" >Save as New</a>
             </div>
         </div>
         <div class="dropdown">
