@@ -1,4 +1,4 @@
-addUploadEventListener();
+import { deleteChildrenById, postData } from './helpers.mjs';
 
 function addUploadEventListener() {
     let fileSelectInput = document.getElementById('file-import');
@@ -48,7 +48,7 @@ function enableUploadButton(){
 }
 
 function clearModal(){
-    deleteChildrenById('field-mapper')
+    deleteChildrenById('field-mapper');
     document.getElementById('file-import').value = '';
     document.getElementById('file-import').value = '';
     document.getElementById('dataset-name').value = '';
@@ -72,11 +72,10 @@ async function uploadDataset(){
         header: true,
         complete: function (results) {
             mapJsonFields(results.data, mapper, metadata.year);
-            let package = {};
-            package.metadata = metadata;
-            package.data = results.data;
-            console.log(package)
-            saveNewDataset(package);
+            let json = {};
+            json.metadata = metadata;
+            json.data = results.data;
+            saveNewDataset(json);
         }
     });
 
@@ -131,23 +130,7 @@ async function uploadDataset(){
 
 }
 
-async function postData(url = '', data = {}) {
-    // Default options are marked with *
-    const response = await fetch(url, {
-      method: 'POST', // *GET, POST, PUT, DELETE, etc.
-      mode: 'cors', // no-cors, *cors, same-origin
-      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: 'same-origin', // include, *same-origin, omit
-      headers: {
-        'Content-Type': 'application/json'
-        // 'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      redirect: 'follow', // manual, *follow, error
-      referrer: 'no-referrer', // no-referrer, *client
-      body: JSON.stringify(data) // body data type must match "Content-Type" header
-    });
-    return await response.json(); // parses JSON response into native JavaScript objects
-  }
+
 
 
 
@@ -339,10 +322,4 @@ function appendUploadAsTable(data, element) {
     uploadButton.textContent = 'Complete Upload';
 }
 
-// helpers ------------------------------------------------
-function deleteChildrenById(id){
-    const node = document.getElementById(id);
-    while (node.firstChild) {
-        node.removeChild(node.firstChild);
-  }
-}
+export { addUploadEventListener }
