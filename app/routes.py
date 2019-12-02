@@ -13,12 +13,10 @@ import app.helpers as helpers
 
 @app.route('/', methods=['GET'])
 def index():
-    if current_user.is_authenticated:
-        # user_id = current_user.get_id()
-        # maps = models.Map.query.all()
-        return render_template('index.html')
-    else:
-        return redirect(url_for('login'))
+    user_id = current_user.get_id()
+    user_maps = models.Map.query.filter_by(owner_id=user_id).filter(models.Map.map_thumbnail_link != None).all()
+    all_maps = models.Map.query.filter(models.Map.map_thumbnail_link != None).limit(5).all()
+    return render_template('index.html', user_maps=user_maps, all_maps=all_maps)
 
 
 @app.route('/login', methods=['GET', 'POST'])
