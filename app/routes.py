@@ -13,7 +13,12 @@ import app.helpers as helpers
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    if current_user.is_authenticated:
+        # user_id = current_user.get_id()
+        # maps = models.Map.query.all()
+        return render_template('index.html')
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -195,7 +200,7 @@ def save_thumbnail(map_id):
     image_data = raw_image[raw_image.find(b'base64')+7:]
     user_map = models.Map.query.get(map_id)
     filename = f'{user_map.title}_{map_id}.jpg'
-    filepath = f'app/static/thumbnails/{filename}'
+    filepath = f'static/thumbnails/{filename}'
     with open(filepath, "wb") as fh:
         fh.write(base64.decodestring(image_data))
     user_map.map_thumbnail_link = filename
