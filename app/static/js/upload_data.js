@@ -10,7 +10,7 @@ function addUploadEventListener() {
         document.getElementById('upload-file-button').disabled=false;
     };
     document.getElementById('import-button').addEventListener('click', clearModal);
-    document.getElementById('upload-button').addEventListener('click', uploadDataset);
+    document.getElementById('upload-file-button').addEventListener('click', uploadDataset);
 }
 
 function displayFieldMapper(uploadInput){
