@@ -265,7 +265,7 @@ class Choropleth {
         const dataResponse = await postData(url, mapDetails);
         this.mapId = dataResponse.map_id;
     
-        const imageResponse = await saveMapImage(this.map_id);
+        const imageResponse = await saveMapImage(this.mapId);
             
     }
 
