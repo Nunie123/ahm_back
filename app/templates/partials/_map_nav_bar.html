@@ -35,16 +35,15 @@
                 Download
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="dropdown-item" href="#">Map as PNG</a>
-                <a class="dropdown-item" href="#">Map as PDF</a>
+                <a class="dropdown-item" href="javascript:;" id="download-jpg">Map as JPG</a>
+                <a class="dropdown-item" href="javascript:;" id="download-png">Map as PNG</a>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#">Data as CSV</a>
-                <a class="dropdown-item" href="#">Data as Excel</a>
-                <a class="dropdown-item" href="#">Data as GeoJSON</a>
+                <a class="dropdown-item" href="javascript:;" id="download-csv">Data as CSV</a>
+                <a class="dropdown-item" href="javascript:;" id="download-json">Data as GeoJSON</a>
             </div>
         </div>
         <button type="button" data-toggle="modal" data-target="#import-modal"
-            class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" onclick="clearModal()" {{ disabled }}>
+            class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" id="import-button" {{ disabled }}>
             Import Dataset
             <span class="tooltiptext" {{ span_style }}>Must be logged in to import data.</span> 
         </button>

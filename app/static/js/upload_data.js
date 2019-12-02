@@ -9,6 +9,8 @@ function addUploadEventListener() {
         displayFieldMapper(fileSelectInput);
         document.getElementById('upload-file-button').disabled=false;
     };
+    document.getElementById('import-button').addEventListener('click', clearModal);
+    document.getElementById('upload-button').addEventListener('click', uploadDataset);
 }
 
 function displayFieldMapper(uploadInput){
@@ -176,7 +178,6 @@ function addDataToGeoJson(data, geoLevel, ignoreIndexes, normalizeIndexes){     
             }
         });
     }
-    console.log(state.stateData.choropleth_properties);
     state.filePendingUpload = null;
     load_map_attribute_selections(geoLevel);
     document.getElementById('close-modal-button').click();
@@ -322,4 +323,4 @@ function appendUploadAsTable(data, element) {
     uploadButton.textContent = 'Complete Upload';
 }
 
-export { addUploadEventListener }
+export { addUploadEventListener };
