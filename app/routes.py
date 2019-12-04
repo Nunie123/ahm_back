@@ -188,6 +188,9 @@ def get_map(map_id):
     serialized_default = [row.to_dict(rules=('-geographic_attributes', 'distinct_geographic_attribute_names')) for row in default_datasets]
     user_datasets = []
     favorite_datasets = []
+    mapView = models.MapView(map_id=map_id, user_id=current_user.get_id(), ip_address=request.remote_addr)
+    db.session.add(mapView)
+    db.session.commit()
     return render_template('analysis.html'
                             , default_dataset_list=serialized_default
                             , user_dataset_list=user_datasets
@@ -284,7 +287,7 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
-def page_not_found(e):
+def page_error(e):
     db.session.rollback()
     return render_template('500.html'), 500
 
