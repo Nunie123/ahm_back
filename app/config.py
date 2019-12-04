@@ -42,6 +42,7 @@ class AppConfig:
 
     # mail accounts
     MAIL_DEFAULT_SENDER = 'americanhealthmapper@gmail.com'
+    INTERNAL_RECIPIENTS = config.get('support', 'recipients')
 
     @staticmethod
     def get_uri(database_name):

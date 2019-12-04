@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, BooleanField, SubmitField, StringField
+from wtforms import PasswordField, BooleanField, SubmitField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, InputRequired, ValidationError
 from wtforms.fields.html5 import EmailField
 from app.models import User
@@ -40,6 +40,19 @@ class LoginForm(FlaskForm):
     )
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
+
+class SupportForm(FlaskForm):
+    name = StringField("Name")
+    email = EmailField(
+        'Email',
+        validators=[
+            InputRequired('Please enter your email address.'),
+            Email('This field requires a valid email address')
+        ]
+    )
+    subject = StringField('Subject')
+    message = TextAreaField('Please describe your issue.')
+    submit = SubmitField('Send')
 
 class EmailForm(FlaskForm):
     email = StringField(
