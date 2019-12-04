@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 import base64
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
@@ -227,24 +228,20 @@ def save_thumbnail(map_id):
     image_data = raw_image[raw_image.find(b'base64')+7:]
     user_map = models.Map.query.get(map_id)
     filename = f'{user_map.title}_{map_id}.jpg'
-    filepath = f'static/thumbnails/{filename}'
+    thumbnail_link = f'static/thumbnails/{filename}'
+    filepath = 'app/' + thumbnail_link
     with open(filepath, "wb") as fh:
         fh.write(base64.decodestring(image_data))
-    user_map.map_thumbnail_link = filename
+    user_map.map_thumbnail_link = thumbnail_link
     db.session.commit()
     return jsonify(success=True)
 
-@app.route('/analysis/<int:map_id>/get-thumbnail-url', methods=['GET'])
-def get_thumbnail_url(map_id):
-    user_map = models.Map.query.get(map_id)
-    filename = user_map.map_thumbnail_link
-    url = url_for('static', filename=f'thumbnails/{filename}', _external=True)
-    print(url)
-    return jsonify(success=True, url=url)
-
-@app.route('/maps', methods=['GET'])
-def maps():
-    return render_template('maps.html')
+# @app.route('/analysis/<int:map_id>/get-thumbnail-url', methods=['GET'])
+# def get_thumbnail_url(map_id):
+#     user_map = models.Map.query.get(map_id)
+#     filename = user_map.map_thumbnail_link
+#     url = url_for('static', filename=f'thumbnails/{filename}', _external=True)
+#     return jsonify(success=True, url=url)
 
 @app.route('/get-attribute-years', methods=['GET'])
 def get_attribute_year():
@@ -266,9 +263,6 @@ def get_data_attribute():
     serialized_list = [row.to_dict(rules=('-geographic_dataset', '-geo_code', 'geo_name')) for row in attribute_list]
     return jsonify(serialized_list)
 
-@app.route('/datasets', methods=['GET'])
-def datasets():
-    return render_template('datasets.html')
 
 @login_required
 @app.route('/save-dataset', methods=['POST'])
@@ -294,15 +288,26 @@ def page_not_found(e):
     db.session.rollback()
     return render_template('500.html'), 500
 
-@app.route('/explore', methods=['GET', 'POST'])
-def explore():
-    return render_template('explore.html')
+@app.route('/maps', methods=['GET'])
+def maps():
+    user_maps = []
+    if current_user.is_authenticated:
+        user_id = current_user.get_id()
+        user_maps = models.Map.get_maps_by_owner(user_id)
+        user_maps = [ map.get_map_card_data() for map in user_maps ]
+        user_maps = helpers.group_list_by_threes(user_maps)
 
+    community_maps = models.Map.query.filter(models.Map.map_thumbnail_link != None).limit(3).all()
+    community_maps = helpers.group_list_by_threes(community_maps)
+    return render_template('maps.html', user_maps=user_maps, community_maps=community_maps)
 
-@app.route('/portfolio', methods=['GET', 'POST'])
-def portfolio():
-    return render_template('portfolio.html')
+@app.route('/datasets', methods=['GET'])
+def datasets():
+    return render_template('datasets.html')
 
+@app.route('/dataset/<dataset_id>', methods=['GET'])
+def dataset():
+    return render_template('dataset.html')
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
@@ -323,9 +328,7 @@ def faq():
 def about():
     return render_template('about.html')
 
-@app.route('/dataset/<dataset_id>', methods=['GET'])
-def dataset():
-    return render_template('dataset.html')
+
 
 
 # @app.route('/user/<user_id>', methods=['GET'])
