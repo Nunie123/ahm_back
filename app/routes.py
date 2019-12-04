@@ -300,9 +300,21 @@ def maps():
         user_maps = [ map.get_map_card_data() for map in user_maps ]
         user_maps = helpers.group_list_by_threes(user_maps)
 
-    community_maps = models.Map.query.filter(models.Map.map_thumbnail_link != None).limit(3).all()
+    community_maps = models.Map.get_most_viewed_maps()
+    community_maps = [ map.get_map_card_data() for map in community_maps ]
     community_maps = helpers.group_list_by_threes(community_maps)
     return render_template('maps.html', user_maps=user_maps, community_maps=community_maps)
+
+@login_required
+@app.route('/maps/<map_id>/remove_owner', methods=['GET'])
+def remove_owner(map_id):
+    this_map = models.Map.query.get(map_id)
+    if this_map.owner_id == current_user.user_id or current_user.is_admin:
+        this_map.remove_owner()
+        return jsonify(success=True)
+    else:
+        return jsonify(success=False, msg='Permission denied.')
+
 
 @app.route('/datasets', methods=['GET'])
 def datasets():

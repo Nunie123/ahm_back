@@ -44,7 +44,7 @@
                                 <div class="dropdown-menu">
                                     <h6 class="dropdown-header">Are you sure?</h6>
                                     <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item" href="#">Delete</a>
+                                    <a class="dropdown-item delete-map-button" href="javascript:;" data-map-id="{{ map.map_id }}">Delete</a>
                                 </div>
                             </div>
                         </div>
@@ -104,4 +104,5 @@
     </div>
 </main>
 
+<script src="{{ url_for('static',filename='js/maps.js') }}"></script>
 {% endblock %}

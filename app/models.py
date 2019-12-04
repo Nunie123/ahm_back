@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlalchemy as sa
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from app import login, db
 import app.helpers as helpers
@@ -195,10 +196,20 @@ class Map(db.Model, SerializerMixin):
     map_thumbnail_link = db.Column(db.Text)
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
-    views = db.relationship('MapView', backref='map', lazy='dynamic')
+    views = db.relationship('MapView', backref='map')
     primary_dataset = db.relationship("GeographicDataset", foreign_keys=[primary_dataset_id])
     secondary_dataset = db.relationship("GeographicDataset", foreign_keys=[secondary_dataset_id])
     __table_args__ = (db.UniqueConstraint('title', 'owner_id', name='_title_owner_uc'),)
+
+    @hybrid_property
+    def view_count(self):
+        if self.views:
+            return len(self.views)
+        return 0
+    
+    @view_count.expression
+    def view_count(cls):
+        return sa.select([sa.func.count(MapView.map_view_id)]).where(MapView.map_id==cls.map_id)
 
     def save(self, counter=0):
         try:
@@ -224,12 +235,21 @@ class Map(db.Model, SerializerMixin):
         data['title'] = self.title
         data['owner'] = User.query.get(self.owner_id).username
         data['map_thumbnail_link'] = self.map_thumbnail_link
-        data['views'] = MapView.query.filter_by(map_id=self.map_id).count()
+        data['views'] = self.view_count
         return data
+    
+    def remove_owner(self):
+        self.owner_id = None 
+        db.session.commit()
 
     @classmethod
     def get_maps_by_owner(cls, owner_id):
         maps = cls.query.filter_by(owner_id=owner_id).all()
+        return maps
+    
+    @classmethod
+    def get_most_viewed_maps(cls):
+        maps = cls.query.order_by(sa.desc(cls.view_count)).limit(3).all()
         return maps
 
 

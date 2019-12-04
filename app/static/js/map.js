@@ -1,8 +1,8 @@
 import { TableView } from './table_view.js';
 import { hideById, showById, postData } from './helpers.mjs';
 
-const L = window.L;  // imported leaflet in analysis.html
-const URL_ROOT = window.SCRIPT_ROOT;  //imported from analysis.html
+const L = window.L;  
+const URL_ROOT = window.SCRIPT_ROOT;  
 
 
 // Map -----------------------------------------------------------------------------
