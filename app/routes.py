@@ -5,7 +5,7 @@ from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from sqlalchemy.orm.session import make_transient_to_detached
 from app import app, db, models
-from app.forms import RegistrationForm, LoginForm, PasswordForm, EmailForm
+from app.forms import RegistrationForm, LoginForm, PasswordForm, EmailForm, SupportForm
 from app.email import send_email
 from app.token import generate_confirmation_token, confirm_token
 from app import models
@@ -18,6 +18,37 @@ def index():
     user_maps = models.Map.query.filter_by(owner_id=user_id).filter(models.Map.map_thumbnail_link != None).all()
     all_maps = models.Map.query.filter(models.Map.map_thumbnail_link != None).limit(5).all()
     return render_template('index.html', user_maps=user_maps, all_maps=all_maps)
+
+@app.route('/support', methods=['GET', 'POST'])
+def support():
+    form = SupportForm()
+    if form.validate_on_submit():
+        if current_user.is_authenticated:
+            user_id = current_user.get_id()
+        else:
+            user_id = None
+        ticket = models.SupportTicket(user_email=form.email.data,
+                                      user_name=form.name.data,
+                                      user_id=user_id,
+                                      user_message=form.message.data
+                                      )
+        db.session.add(ticket)
+        db.session.commit()
+        confirmation = render_template('support_email.html',
+                                       ticket=ticket.get_id())
+        subject = "Support ticket submitted"
+        send_email(form.email.data, subject, confirmation)
+        internal_ticket = render_template('support_ticket.html',
+                                          email=form.email.data,
+                                          name=form.name.data,
+                                          ticket_number=ticket.get_id(),
+                                          user_id=user_id,
+                                          message=form.message.data)
+        send_email(app.config['INTERNAL_RECIPIENTS'], subject, internal_ticket)
+        flash('Thank you for your feedback. A ticket has been submitted.', 'success')
+        return redirect(url_for('index'))
+    return render_template('support.html', title='Support', form=form)
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -77,11 +108,9 @@ def reset():
             'reset_with_token',
             token=token,
             _external=True)
-        print(recover_url)
         html = render_template(
             'recover.html',
             recover_url=recover_url)
-        print('sending email')
         send_email(user.email, subject, html)
         flash('A reset link been sent via email.', 'success')
         return redirect(url_for('index'))
@@ -250,6 +279,14 @@ def save_dataset():
     models.GeographicAttribute.bulk_insert(attributes, dataset.geographic_dataset_id)
     return jsonify(success=True)
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def page_not_found(e):
+    db.session.rollback()
+    return render_template('500.html'), 500
 
 @app.route('/maps', methods=['GET'])
 def maps():
