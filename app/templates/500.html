@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Something Went Wrong</h1>
+  <p>There were issues retrieving the page you were looking for. If you are experiencing any difficult, please contact us.
+  <p><a href="{{ url_for('support') }}">Report a problem</a>
+  <p><a href="{{ url_for('index') }}">Return home</a>
+{% endblock %}

@@ -65,6 +65,17 @@ class EmailAuthenticationCode(db.Model):
     authentication_code = db.Column(db.Integer, nullable=False)
     expiration_timestamp = db.Column(db.DateTime, nullable=False)
 
+class SupportTicket(db.Model):
+    __tablename__ = 'support_tickets'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
+    user_email = db.Column(db.Text, nullable=False)
+    user_name = db.Column(db.Text)
+    user_message = db.Column(db.Text)
+
+    def get_id(self):
+        return str(self.user_id)
+
 
 class GeoCode(db.Model):
     __tablename__ = 'geo_codes'
