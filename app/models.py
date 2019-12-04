@@ -203,6 +203,23 @@ class Map(db.Model, SerializerMixin):
                 self.title += f'({counter})'
             self.save(counter)
 
+    def get_map_card_data(self):
+        data = {}
+        data['map_id'] = self.map_id
+        data['attribute_name_1'] = self.attribute_name_1
+        data['attribute_name_2'] = self.attribute_name_2
+        data['attribute_year_1'] = self.attribute_year_1
+        data['attribute_year_2'] = self.attribute_year_2
+        data['title'] = self.title
+        data['owner'] = User.query.get(self.owner_id).username
+        data['map_thumbnail_link'] = self.map_thumbnail_link
+        data['views'] = MapView.query.filter_by(map_id=self.map_id).count()
+        return data
+
+    @classmethod
+    def get_maps_by_owner(cls, owner_id):
+        maps = cls.query.filter_by(owner_id=owner_id).all()
+        return maps
 
 
 

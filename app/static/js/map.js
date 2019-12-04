@@ -272,7 +272,7 @@ class Choropleth {
     async downloadMapAsJpg(){
         let dataUrl = await generateImage();
         let link = document.createElement('a');
-        let title = this.title || 'untitled_map';
+        let title = this.title.replace('.', '_') || 'untitled_map';
         link.download = `${title}.jpg`;
         link.href = dataUrl;
         link.click();
@@ -281,7 +281,7 @@ class Choropleth {
     async downloadMapAsPng(){
         let dataUrl = await generateImage(1, 'png');
         let link = document.createElement('a');
-        let title = this.title || 'untitled_map';
+        let title = this.title.replace('.', '_') || 'untitled_map';
         link.download = `${title}.png`;
         link.href = dataUrl;
         link.click();

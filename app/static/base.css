@@ -1,0 +1,21 @@
+
+
+/* MAPS PAGE ---------------- */
+.map-card-section{
+    background-color: #EEEEEE;
+    margin: 20px 0px;
+    padding: 40px;
+    border-radius: 10px;
+}
+
+.map-card-row{
+    margin-bottom: 40px;
+}
+
+.card-img-top {
+    height: 220px;
+}
+.map-card-row .card-content {
+    height: 180px;
+    overflow-y: scroll;
+}
