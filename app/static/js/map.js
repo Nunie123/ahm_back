@@ -270,19 +270,19 @@ class Choropleth {
     }
 
     async downloadMapAsJpg(){
-        let node = document.getElementById('map');
-        let dataUrl = await domtoimage.toJpeg(node, { quality: 0.95});
+        let dataUrl = await generateImage();
         let link = document.createElement('a');
-        link.download = `${self.title}.jpg`;
+        let title = this.title || 'untitled_map';
+        link.download = `${title}.jpg`;
         link.href = dataUrl;
         link.click();
     }
 
     async downloadMapAsPng(){
-        let node = document.getElementById('map');
-        let dataUrl = await domtoimage.toJpeg(node);
+        let dataUrl = await generateImage(1, 'png');
         let link = document.createElement('a');
-        link.download = `${this.title}.png`;
+        let title = this.title || 'untitled_map';
+        link.download = `${title}.png`;
         link.href = dataUrl;
         link.click();
     }
@@ -305,7 +305,7 @@ class Choropleth {
 
 
 async function saveMapImage(map_id){
-    const mapImage = await generateThumbnailImage();
+    const mapImage = await generateImage(0.15);
     const imageUrl = `${URL_ROOT}analysis/${map_id}/save-thumbnail`;
     const imageResponse = await fetch(imageUrl, {
         method: 'POST',
@@ -314,9 +314,13 @@ async function saveMapImage(map_id){
     return imageResponse;
 }
 
-async function generateThumbnailImage(){
+async function generateImage(quality=0.95, format='jpg'){
     let node = document.getElementById('map');
-    let dataUrl = await domtoimage.toJpeg(node, { quality: 0.15});
+    let options = {};
+    options.quality = quality;
+    options.width = node.clientWidth;
+    options.height = node.clientHeight;
+    let dataUrl = format == 'jpg' ? await domtoimage.toJpeg(node, options) : await domtoimage.toPng(node, options);    
     return dataUrl;
 }
 
