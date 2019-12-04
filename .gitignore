@@ -8,6 +8,7 @@ node_modules/
 data/
 package-lock.json
 settings.json
+.pylintrc
 
 # GitHub template from https://github.com/github/gitignore/blob/master/Python.gitignore
 
