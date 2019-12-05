@@ -274,22 +274,22 @@ class GeographicDatasetView(db.Model):
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
 
 
-# class MapFavorite(db.Model):
-#     __tablename__ = 'map_favorites'
-#     map_view_id = db.Column(db.Integer, primary_key=True)
-#     map_id = db.Column(db.Integer, db.ForeignKey('map.map_id') , nullable=False)
-#     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id') , nullable=False)
-#     created_at = db.Column(db.DateTime, server_default=sa.func.now())
-#     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
+class MapFavorite(db.Model):
+    __tablename__ = 'map_favorites'
+    map_favorite_id = db.Column(db.Integer, primary_key=True)
+    map_id = db.Column(db.Integer, db.ForeignKey('maps.map_id') , nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id') , nullable=False)
+    created_at = db.Column(db.DateTime, server_default=sa.func.now())
+    updated_at = db.Column(db.DateTime, server_default=sa.func.now())
 
 
-# class GeographicDatasetFavorite(db.Model):
-#     __tablename__ = 'geographic_dataset_favorites'
-#     geographic_dataset_view_id = db.Column(db.Integer, primary_key=True)
-#     geographic_dataset_id = db.Column(db.Integer, db.ForeignKey('map.map_id') , nullable=False)
-#     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id') , nullable=False)
-#     created_at = db.Column(db.DateTime, server_default=sa.func.now())
-#     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
+class GeographicDatasetFavorite(db.Model):
+    __tablename__ = 'geographic_dataset_favorites'
+    geographic_dataset_favorite_id = db.Column(db.Integer, primary_key=True)
+    geographic_dataset_id = db.Column(db.Integer, db.ForeignKey('maps.map_id') , nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id') , nullable=False)
+    created_at = db.Column(db.DateTime, server_default=sa.func.now())
+    updated_at = db.Column(db.DateTime, server_default=sa.func.now())
 
 
 # class MapComment(db.Model):
