@@ -316,6 +316,24 @@ def remove_owner(map_id):
         return jsonify(success=False, msg='Permission denied.')
 
 
+@login_required
+@app.route('/maps/<map_id>/add_favorite', methods=['GET'])
+def add_favorite(map_id):
+    duplicate_fav = models.MapFavorite.query.filter_by(map_id=map_id, user_id=current_user.user_id).first()
+    if duplicate_fav:
+        msg = "This map is already a favorite."
+        flash(msg)
+        return jsonify(success=False, msg=msg)
+    try:
+        fav = models.MapFavorite(map_id=map_id, user_id=current_user.user_id)
+        db.session.add(fav)
+        db.session.commit()
+        flash('Added to Favorites.')
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, msg=e)
+
+
 @app.route('/datasets', methods=['GET'])
 def datasets():
     return render_template('datasets.html')
