@@ -268,12 +268,7 @@ def save_thumbnail(map_id):
 def get_attribute_year():
     dataset_id = request.args.get('datasetId')
     attribute_name = request.args.get('attributeName')
-    year_rows = models.GeographicAttribute.query\
-        .with_entities(models.GeographicAttribute.attribute_year)\
-        .filter_by(dataset_id=dataset_id, attribute_name=attribute_name)
-    year_list = [row.attribute_year for row in year_rows]
-    distinct_year_list = list(set(year_list))
-    distinct_year_list.sort(reverse=True)
+    distinct_year_list = models.GeographicAttribute.get_attribute_years(dataset_id, attribute_name)
     return jsonify(distinct_year_list)
 
 

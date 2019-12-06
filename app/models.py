@@ -36,11 +36,12 @@ class User(UserMixin, db.Model):
     def get_id(self):
         return str(self.user_id)
 
-    def update_user(self, username=None, password=None, email=None, is_admin=None):
+    def update_user(self, username=None, password=None,
+                    email=None, is_admin=None):
         if username:
             self.username = username
         if email:
-            self.email = email 
+            self.email = email
         if is_admin:
             self.is_admin = True
         if password:
@@ -56,13 +57,19 @@ class User(UserMixin, db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return f'<User id={self.user_id}, username={self.username} email={self.email}>'
+        return (f'<User id={self.user_id},'
+                f'username={self.username},'
+                f'email={self.email}>')
 
 
 class EmailAuthenticationCode(db.Model):
     __tablename__ = 'email_authentication_codes'
-    email_authentication_id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    email_authentication_id = db.Column(db.Integer,
+                                        primary_key=True,
+                                        autoincrement=False)
+    user_id = db.Column(db.Integer,
+                        db.ForeignKey('users.user_id'),
+                        nullable=False)
     authentication_code = db.Column(db.Integer, nullable=False)
     expiration_timestamp = db.Column(db.DateTime, nullable=False)
 
@@ -70,7 +77,9 @@ class EmailAuthenticationCode(db.Model):
 class SupportTicket(db.Model):
     __tablename__ = 'support_tickets'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
+    user_id = db.Column(db.Integer,
+                        db.ForeignKey('users.user_id'),
+                        nullable=True)
     user_email = db.Column(db.Text, nullable=False)
     user_name = db.Column(db.Text)
     user_message = db.Column(db.Text)
@@ -85,8 +94,14 @@ class GeoCode(db.Model):
     fips_code = db.Column(db.Text)
     geo_name = db.Column(db.Text)
     geo_abreviation = db.Column(db.Text)
-    geographic_level = db.Column(sa.Enum('state', 'county', name='geo_levels', create_type=True), nullable=False)
-    geographic_attributes = db.relationship('GeographicAttribute', backref='geo_code', lazy='dynamic')
+    geographic_level = db.Column(sa.Enum('state',
+                                         'county',
+                                         name='geo_levels',
+                                         create_type=True),
+                                 nullable=False)
+    geographic_attributes = db.relationship('GeographicAttribute',
+                                            backref='geo_code',
+                                            lazy='dynamic')
 
     @staticmethod
     def get_geocode_id(search_str):
@@ -108,8 +123,12 @@ class GeographicDataset(db.Model, SerializerMixin):
     display_by_default = db.Column(db.Boolean, server_default=sa.false())
     is_public = db.Column(db.Boolean, server_default=sa.true())
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
-    geographic_attributes = db.relationship('GeographicAttribute', backref='geographic_dataset', lazy='dynamic')
-    views = db.relationship('GeographicDatasetView', backref='geographic_dataset', lazy='dynamic')
+    geographic_attributes = db.relationship('GeographicAttribute',
+                                            backref='geographic_dataset',
+                                            lazy='dynamic')
+    views = db.relationship('GeographicDatasetView',
+                            backref='geographic_dataset',
+                            lazy='dynamic')
 
     def __init__(self, dataset):
         self.owner_id = dataset['owner_id']
@@ -128,21 +147,22 @@ class GeographicDataset(db.Model, SerializerMixin):
     def distinct_geographic_attribute_names(self):
         name_list = [attribute.attribute_name
                      for attribute in self.geographic_attributes
-                     if attribute.deleted_at is not None]
+                     if attribute.deleted_at is None]
         distinct_name_list = list(set(name_list))
         distinct_name_list.sort()
         distinct_attribute_list = \
             [{'name': name, 'dataset_id': self.geographic_dataset_id}
              for name in distinct_name_list]
         return distinct_attribute_list
-        
+
     def get_distinct_attributes(self):
         attributes = GeographicAttribute.query \
             .with_entities(GeographicAttribute.attribute_name,
                            GeographicAttribute.attribute_year,
                            sa.func.count(GeographicAttribute.geo_code_id)
                            .label('count'))\
-            .filter_by(dataset_id=self.geographic_dataset_id, deleted_at=None)\
+            .filter(GeographicAttribute.dataset_id == self.geographic_dataset_id,
+                    GeographicAttribute.deleted_at is not None)\
             .group_by(GeographicAttribute.attribute_name,
                       GeographicAttribute.attribute_year)\
             .order_by(GeographicAttribute.attribute_name,
@@ -161,11 +181,11 @@ class GeographicDataset(db.Model, SerializerMixin):
             item['source_organization'] = self.organization
             item['source_url'] = self.url
             item['attribute_count'] = att.count
-    # TODO Adding the geo level like below wrecks performance.
-    # item['geo_level'] = self.geographic_attributes[0].geo_code.geographic_level
+# TODO Adding the geo level like below wrecks performance.
+# item['geo_level'] = self.geographic_attributes[0].geo_code.geographic_level
             attribute_list.append(item)
         return attribute_list
-    
+
     @classmethod
     def get_list_of_all_attributes(cls):
         attribute_list = []
@@ -178,19 +198,39 @@ class GeographicDataset(db.Model, SerializerMixin):
 class GeographicAttribute(db.Model, SerializerMixin):
     __tablename__ = 'geographic_attributes'
     geographic_attribute_id = db.Column(db.Integer, primary_key=True)
-    geo_code_id = db.Column(db.Integer, db.ForeignKey('geo_codes.geo_code_id'), nullable=False)
-    dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id'), nullable=False)
+    geo_code_id = db.Column(db.Integer,
+                            db.ForeignKey('geo_codes.geo_code_id'),
+                            nullable=False)
+    dataset_id = db.Column(db.Integer,
+                           db.ForeignKey('geographic_datasets.geographic_dataset_id'),
+                           nullable=False)
     attribute_name = db.Column(db.Text, nullable=False)
     attribute_value = db.Column(db.Numeric, nullable=False)
-    attribute_value_type = db.Column(sa.Enum('percent', 'count', name='value_type', create_type=True), server_default='percent')
+    attribute_value_type = db.Column(sa.Enum('percent', 'count', name='value_type', create_type=True),
+                                     server_default='percent')
     attribute_year = db.Column(db.SmallInteger)
     attribute_relative_weight = db.Column(sa.Enum('high', 'medium', 'low', name='relative_weights', create_type=True))
     deleted_at = db.Column(db.DateTime)
-    __table_args__ = (db.UniqueConstraint('geo_code_id', 'attribute_name', 'attribute_year', 'dataset_id', name='_attribute_year_dataset_uc'),)
+    __table_args__ = (db.UniqueConstraint('geo_code_id',
+                                          'attribute_name',
+                                          'attribute_year',
+                                          'dataset_id',
+                                          name='_attribute_year_dataset_uc'),)
 
     @property
     def geo_name(self):
         return self.geo_code.geo_name
+
+    @classmethod
+    def get_attribute_years(cls, dataset_id, attribute_name):
+        year_rows = cls.query\
+            .with_entities(cls.attribute_year)\
+            .filter_by(dataset_id=dataset_id, attribute_name=attribute_name)\
+            .order_by(cls.attribute_year.desc()).all()
+        year_list = [row.attribute_year for row in year_rows]
+        distinct_year_list = list(set(year_list))
+        # distinct_year_list.sort(reverse=True)
+        return distinct_year_list
 
     @staticmethod
     def bulk_insert(attributes, dataset_id):
@@ -211,11 +251,13 @@ class GeographicAttribute(db.Model, SerializerMixin):
                 db.session.execute(GeographicAttribute.__table__.insert(), row)
                 db.session.commit()
 
-    
+
 class Map(db.Model, SerializerMixin):
     __tablename__ = 'maps'
     map_id = db.Column(db.Integer, primary_key=True)
-    primary_dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id') , nullable=False)
+    primary_dataset_id = db.Column(db.Integer,
+                                   db.ForeignKey('geographic_datasets.geographic_dataset_id'),
+                                   nullable=False)
     secondary_dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id'))
     attribute_name_1 = db.Column(db.Text, nullable=False)
     attribute_name_2 = db.Column(db.Text)
@@ -241,10 +283,10 @@ class Map(db.Model, SerializerMixin):
         if self.views:
             return len(self.views)
         return 0
-    
+
     @view_count.expression
     def view_count(cls):
-        return sa.select([sa.func.count(MapView.map_view_id)]).where(MapView.map_id==cls.map_id)
+        return sa.select([sa.func.count(MapView.map_view_id)]).where(MapView.map_id == cls.map_id)
 
     def save(self, counter=0):
         try:
@@ -301,7 +343,9 @@ class MapView(db.Model):
 class GeographicDatasetView(db.Model):
     __tablename__ = 'geographic_dataset_views'
     geographic_dataset_view_id = db.Column(db.Integer, primary_key=True)
-    geographic_dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id') , nullable=False)
+    geographic_dataset_id = db.Column(db.Integer,
+                                      db.ForeignKey('geographic_datasets.geographic_dataset_id'),
+                                      nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
     ip_address = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
@@ -311,8 +355,8 @@ class GeographicDatasetView(db.Model):
 class MapFavorite(db.Model):
     __tablename__ = 'map_favorites'
     map_favorite_id = db.Column(db.Integer, primary_key=True)
-    map_id = db.Column(db.Integer, db.ForeignKey('maps.map_id') , nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id') , nullable=False)
+    map_id = db.Column(db.Integer, db.ForeignKey('maps.map_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
 
@@ -320,8 +364,8 @@ class MapFavorite(db.Model):
 class GeographicDatasetFavorite(db.Model):
     __tablename__ = 'geographic_dataset_favorites'
     geographic_dataset_favorite_id = db.Column(db.Integer, primary_key=True)
-    geographic_dataset_id = db.Column(db.Integer, db.ForeignKey('maps.map_id') , nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id') , nullable=False)
+    geographic_dataset_id = db.Column(db.Integer, db.ForeignKey('maps.map_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
 
