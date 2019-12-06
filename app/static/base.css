@@ -8,7 +8,7 @@
     border-radius: 10px;
 }
 
-.map-card-row{
+.map-card-row, .dataset-card-row{
     margin-bottom: 40px;
 }
 
@@ -18,4 +18,14 @@
 .map-card-row .card-content {
     height: 180px;
     overflow-y: scroll;
+}
+
+.dataset-card-row .card-content {
+    height: 280px;
+    overflow-y: scroll;
+}
+
+.card-content label{
+    font-size: 0.8em;
+    color: gray;
 }

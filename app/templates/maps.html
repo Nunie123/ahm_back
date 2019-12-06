@@ -29,9 +29,9 @@
                             <h6 class="card-subtitle">"{{ map.attribute_name_1 }} - {{ map.attribute_year_1 }}"</h6>
                             {% endif %}
                             <p class="card-text">
-                                created by: {{ map.owner }} <br>
-                                views: {{ map.views }} <br>
-                                favorites: 12
+                                <label>created by:</label> {{ map.owner }} <br>
+                                <label>views:</label> {{ map.views }} <br>
+                                <label>favorites:</label> 12
                             </p>
                         </div>
                         <div class="card-body">
@@ -56,51 +56,51 @@
         </div>
         {% endif %}
         <div class="map-card-section">
-                <div class="row" id="user-maps-title">
-                    <div class="col-sm-12"><h3>Community Maps</h3></div>
-                </div>
-                {% for row in community_maps %}
-                <div class="row map-card-row">
-                    {% for map in row %}
-                    <div class="col-sm-4">
-                        <div class="card">
-                            <img src="{{ map.map_thumbnail_link }}" class="card-img-top" alt="chart"></a>
-                            <div class="card-body card-content">
-                                <h5 class="card-title">{{ map.title }}</h5>
-                                {% if map.attribute_name_2 %}
-                                <h6 class="card-subtitle">
-                                    "{{ map.attribute_name_1 }} - {{ map.attribute_year_1 }}" vs. <br>
-                                    "{{ map.attribute_name_2 }} - {{ map.attribute_year_2 }}"
-                                </h6>
-                                {% else %}
-                                <h6 class="card-subtitle">"{{ map.attribute_name_1 }} - {{ map.attribute_year_1 }}"</h6>
-                                {% endif %}
-                                <p class="card-text">
-                                    created by: {{ map.owner }} <br>
-                                    views: {{ map.views }} <br>
-                                    favorites: 12
-                                </p>
-                            </div>
-                            <div class="card-body">
-                                <a href="analysis/{{ map.map_id }}" class="btn btn-primary">View</a>
-                                <a href="#" class="btn btn-primary"><i class="fas fa-heart"></i>+</a>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Delete
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <h6 class="dropdown-header">Are you sure?</h6>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Delete</a>
-                                    </div>
+            <div class="row" id="user-maps-title">
+                <div class="col-sm-12"><h3>Community Maps</h3></div>
+            </div>
+            {% for row in community_maps %}
+            <div class="row map-card-row">
+                {% for map in row %}
+                <div class="col-sm-4">
+                    <div class="card">
+                        <img src="{{ map.map_thumbnail_link }}" class="card-img-top" alt="chart"></a>
+                        <div class="card-body card-content">
+                            <h5 class="card-title">{{ map.title }}</h5>
+                            {% if map.attribute_name_2 %}
+                            <h6 class="card-subtitle">
+                                "{{ map.attribute_name_1 }} - {{ map.attribute_year_1 }}" vs. <br>
+                                "{{ map.attribute_name_2 }} - {{ map.attribute_year_2 }}"
+                            </h6>
+                            {% else %}
+                            <h6 class="card-subtitle">"{{ map.attribute_name_1 }} - {{ map.attribute_year_1 }}"</h6>
+                            {% endif %}
+                            <p class="card-text">
+                                <label>created by:</label> {{ map.owner }} <br>
+                                <label>views:</label> {{ map.views }} <br>
+                                <label>favorites:</label> 12
+                            </p>
+                        </div>
+                        <div class="card-body">
+                            <a href="analysis/{{ map.map_id }}" class="btn btn-primary">View</a>
+                            <a href="#" class="btn btn-primary"><i class="fas fa-heart"></i>+</a>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Delete
+                                </button>
+                                <div class="dropdown-menu">
+                                    <h6 class="dropdown-header">Are you sure?</h6>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="#">Delete</a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
                 {% endfor %}
             </div>
+            {% endfor %}
+        </div>
     </div>
 </main>
 
