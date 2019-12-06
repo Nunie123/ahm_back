@@ -12,14 +12,18 @@ import app.helpers as helpers
 
 @app.route('/', methods=['GET'])
 def index():
-    user_id = current_user.get_id()
-    user_maps = models.Map.query.filter_by(owner_id=user_id)\
-        .filter(models.Map.map_thumbnail_link is not None).all()
-    all_maps = models.Map.query\
-        .filter(models.Map.map_thumbnail_link is not None).limit(5).all()
-    return render_template('index.html',
-                           user_maps=user_maps,
-                           all_maps=all_maps)
+    user_maps = []
+    if current_user.is_authenticated:
+        user_id = current_user.get_id()
+        user_maps = models.Map.get_maps_by_owner(user_id)
+        user_maps = [map.get_map_card_data() for map in user_maps]
+        user_maps = user_maps[:3]
+
+    community_maps = models.Map.get_most_viewed_maps()
+    community_maps = [map.get_map_card_data() for map in community_maps]
+    community_maps = community_maps[:3]
+    return render_template('index.html', user_maps=user_maps,
+                           community_maps=community_maps)
 
 
 @app.route('/support', methods=['GET', 'POST'])

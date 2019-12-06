@@ -1,0 +1,37 @@
+<div class="col-sm-4">
+    <div class="card">
+        <img src="{{ map.map_thumbnail_link }}" class="card-img-top" alt="chart"></a>
+        <div class="card-body card-content">
+            <h5 class="card-title">{{ map['title'] }}</h5>
+            {% if map.attribute_name_2 %}
+            <h6 class="card-subtitle">
+                "{{ map.attribute_name_1 }} - {{ map.attribute_year_1 }}" vs. <br>
+                "{{ map.attribute_name_2 }} - {{ map.attribute_year_2 }}"
+            </h6>
+            {% else %}
+            <h6 class="card-subtitle">"{{ map.attribute_name_1 }} - {{ map.attribute_year_1 }}"</h6>
+            {% endif %}
+            <p class="card-text">
+                <label>created by:</label> {{ map.owner }} <br>
+                <label>views:</label> {{ map.views }} <br>
+                <label>favorites:</label> 12
+            </p>
+        </div>
+        <div class="card-body">
+            <a href="analysis/{{ map.map_id }}" class="btn btn-primary">View</a>
+            <a href="javascript:;" class="btn btn-primary favorite-button" data-map-id="{{ map.map_id }}"><i class="fas fa-heart"></i>+</a>
+            {% if map.map_id in current_user.maps_owned  or current_user.is_admin %}
+            <div class="btn-group">
+                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Delete
+                </button>
+                <div class="dropdown-menu">
+                    <h6 class="dropdown-header">Are you sure?</h6>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item delete-map-button" href="javascript:;" data-map-id="{{ map.map_id }}">Delete</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

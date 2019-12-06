@@ -3,8 +3,8 @@
 /* MAPS PAGE ---------------- */
 .map-card-section{
     background-color: #EEEEEE;
-    margin: 20px 0px;
-    padding: 40px;
+    margin-bottom: 20px;
+    padding: 40px 40px 10px 40px;
     border-radius: 10px;
 }
 
@@ -28,4 +28,13 @@
 .card-content label{
     font-size: 0.8em;
     color: gray;
+}
+
+#user-maps-title{
+    margin-top: 40px;
+}
+
+.see-more-row{
+    text-align: right;
+    margin-top: -25px;
 }
