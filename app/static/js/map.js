@@ -27,7 +27,7 @@ class Choropleth {
         this.center = [37.8, -96];
         this.zoom = 4;
         this.map = this.createMap();
-        this.infoLayer = this.makeInfoBox(this.choroplethProperties, this.map);
+        this.infoLayer = null;
         this.showMapView = this.showMapView.bind(this);
         this.saveMap = this.saveMap.bind(this);
         this.downloadAsCsv = this.downloadAsCsv.bind(this);
@@ -162,6 +162,9 @@ class Choropleth {
     }
 
     addChoroplethProperty(propertyJson){
+        if(this.choroplethProperties.length == 0){
+            this.addInfoBox();
+        }
         if(this.choroplethProperties.length < 2){
             let property = {};
             property.propertyName = propertyJson[0].attribute_name;
@@ -183,6 +186,7 @@ class Choropleth {
             this.addChoroplethToMap();
         } else {
             this.removeGeoJsonLayer();
+            this.removeInfoBox();
         }
         // The code breaks without the below assignment.  I do not know why.  For some reason the properties don't update properly unless they are evaluated at this stage.
         let properties = this.geoJson.features[0].properties;  // DO NOT REMOVE
@@ -199,8 +203,9 @@ class Choropleth {
         hideById('statistics-view');
     }
 
-    makeInfoBox(choroplethProperties, map){
-        var info = L.control();
+    addInfoBox(){
+        let info = L.control();
+        let map = this.map;
     
         info.onAdd = function (map) {
             this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
@@ -209,31 +214,34 @@ class Choropleth {
         };
     
         info.update = function (props) {
-            var boxEl = this._div;
-            boxEl.innerHTML = '';
-            boxEl.setAttribute('id', 'map-info-box');
+            var boxNode = this._div;
+            boxNode.innerHTML = '';
+            boxNode.setAttribute('id', 'map-info-box');
             if(props){
                 let headerText = document.createTextNode(props.NAME);
-                boxEl.appendChild(headerText);
-                for(let i=0; i<choroplethProperties.length; i++){
-                    let propertyName = choroplethProperties[i].propertyName;
-                    let brFirst = document.createElement('br');
-                    let textFirst = document.createTextNode(propertyName + ': ' + props[propertyName]);
-                    let brSecond = document.createElement('br');
-                    let textSecond = document.createTextNode(propertyName + ' rank: ' + props[propertyName + ' relative rank']);
-                    boxEl.appendChild(brFirst);
-                    boxEl.appendChild(textFirst);
-                    boxEl.appendChild(brSecond);
-                    boxEl.appendChild(textSecond);
+                let propsCopy = Object.assign({}, props);
+                boxNode.appendChild(headerText);
+                boxNode.appendChild(document.createElement('br'));
+                delete propsCopy.NAME;
+                delete propsCopy['GEO ID'];
+                for (let key in propsCopy){
+                    let text = document.createTextNode(`${key}: ${propsCopy[key]}`);
+                    boxNode.appendChild(text);
+                    boxNode.appendChild(document.createElement('br'));
                 }
             } else {
                 let text = document.createTextNode(`Hover over a state.`);
-                boxEl.appendChild(text);
+                boxNode.appendChild(text);
             }
         };
     
         info.addTo(map);
-        return info;
+        this.infoLayer = info;
+    }
+
+    removeInfoBox(){
+        this.map.removeControl(this.infoLayer);
+        this.infoLayer = null;
     }
 
     async saveMap(e){

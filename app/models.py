@@ -225,11 +225,10 @@ class GeographicAttribute(db.Model, SerializerMixin):
     def get_attribute_years(cls, dataset_id, attribute_name):
         year_rows = cls.query\
             .with_entities(cls.attribute_year)\
-            .filter_by(dataset_id=dataset_id, attribute_name=attribute_name)\
-            .order_by(cls.attribute_year.desc()).all()
+            .filter_by(dataset_id=dataset_id, attribute_name=attribute_name).all()
         year_list = [row.attribute_year for row in year_rows]
         distinct_year_list = list(set(year_list))
-        # distinct_year_list.sort(reverse=True)
+        distinct_year_list.sort(reverse=True)
         return distinct_year_list
 
     @staticmethod
