@@ -1,4 +1,10 @@
 {
     "python.pythonPath": "/Users/nunes/miniconda3/envs/ahm-back/bin/python",
-    "jshint.options": {"esversion": 8, "browser": true}
+    "jshint.options": {
+        "esversion": 8,
+        "browser": true
+    },
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true
 }

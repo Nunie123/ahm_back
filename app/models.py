@@ -50,7 +50,7 @@ class User(UserMixin, db.Model):
     def authenticate_email(self):
         self.is_email_authenticated = True
         db.session.commit()
-    
+
     def soft_delete_user(self):
         self.deleted_at = datetime.datetime.utcnow()
         db.session.commit()
@@ -65,6 +65,7 @@ class EmailAuthenticationCode(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     authentication_code = db.Column(db.Integer, nullable=False)
     expiration_timestamp = db.Column(db.DateTime, nullable=False)
+
 
 class SupportTicket(db.Model):
     __tablename__ = 'support_tickets'
@@ -90,9 +91,9 @@ class GeoCode(db.Model):
     @staticmethod
     def get_geocode_id(search_str):
         geo_code_id = GeoCode.query.with_entities(GeoCode.geo_code_id)\
-            .filter(sa.or_(GeoCode.fips_code == search_str, 
-                            GeoCode.geo_name == search_str, 
-                            GeoCode.geo_abreviation == search_str)).first()
+            .filter(sa.or_(GeoCode.fips_code == search_str,
+                           GeoCode.geo_name == search_str,
+                           GeoCode.geo_abreviation == search_str)).first()
         return geo_code_id
 
 
@@ -120,24 +121,58 @@ class GeographicDataset(db.Model, SerializerMixin):
 
     @property
     def geographic_attributes_dict(self):
-        return [helpers.convert_row_to_dict(row) for row in self.geographic_attributes]
+        return [helpers.convert_row_to_dict(row)
+                for row in self.geographic_attributes]
 
     @property
     def distinct_geographic_attribute_names(self):
-        name_list = [attribute.attribute_name for attribute in self.geographic_attributes]
+        name_list = [attribute.attribute_name
+                     for attribute in self.geographic_attributes
+                     if attribute.deleted_at is not None]
         distinct_name_list = list(set(name_list))
         distinct_name_list.sort()
-        distinct_attribute_list = [{'name': name, 'dataset_id': self.geographic_dataset_id} for name in distinct_name_list]
-        # distinct_attribute_list = []
-        # for name in distinct_name_list:
-        #     years = GeographicAttribute.query.with_entities(GeographicAttribute.attribute_year)\
-        #         .filter_by(attribute_name=name, dataset_id=self.geographic_dataset_id).order_by(GeographicAttribute.attribute_year.desc())
-        #     attribute_dict = {'name': name, 'years': years, 'dataset_id': self.geographic_dataset_id}
-        #     distinct_attribute_list.append(attribute_dict)
-        # print(distinct_attribute_list)
+        distinct_attribute_list = \
+            [{'name': name, 'dataset_id': self.geographic_dataset_id}
+             for name in distinct_name_list]
         return distinct_attribute_list
+        
+    def get_distinct_attributes(self):
+        attributes = GeographicAttribute.query \
+            .with_entities(GeographicAttribute.attribute_name,
+                           GeographicAttribute.attribute_year,
+                           sa.func.count(GeographicAttribute.geo_code_id)
+                           .label('count'))\
+            .filter_by(dataset_id=self.geographic_dataset_id, deleted_at=None)\
+            .group_by(GeographicAttribute.attribute_name,
+                      GeographicAttribute.attribute_year)\
+            .order_by(GeographicAttribute.attribute_name,
+                      GeographicAttribute.attribute_year).all()
+        return attributes
 
-
+    def get_list_of_attributes(self):
+        attribute_list = []
+        for att in self.get_distinct_attributes():
+            item = {}
+            item['attribute_name'] = att.attribute_name
+            item['attribute_year'] = att.attribute_year
+            item['source_id'] = self.geographic_dataset_id
+            item['source_name'] = self.name
+            item['source_description'] = self.description
+            item['source_organization'] = self.organization
+            item['source_url'] = self.url
+            item['attribute_count'] = att.count
+    # TODO Adding the geo level like below wrecks performance.
+    # item['geo_level'] = self.geographic_attributes[0].geo_code.geographic_level
+            attribute_list.append(item)
+        return attribute_list
+    
+    @classmethod
+    def get_list_of_all_attributes(cls):
+        attribute_list = []
+        for dataset in cls.query.all():
+            these_attributes = dataset.get_list_of_attributes()
+            attribute_list += these_attributes
+        return attribute_list
 
 
 class GeographicAttribute(db.Model, SerializerMixin):
@@ -150,6 +185,7 @@ class GeographicAttribute(db.Model, SerializerMixin):
     attribute_value_type = db.Column(sa.Enum('percent', 'count', name='value_type', create_type=True), server_default='percent')
     attribute_year = db.Column(db.SmallInteger)
     attribute_relative_weight = db.Column(sa.Enum('high', 'medium', 'low', name='relative_weights', create_type=True))
+    deleted_at = db.Column(db.DateTime)
     __table_args__ = (db.UniqueConstraint('geo_code_id', 'attribute_name', 'attribute_year', 'dataset_id', name='_attribute_year_dataset_uc'),)
 
     @property
@@ -176,7 +212,6 @@ class GeographicAttribute(db.Model, SerializerMixin):
                 db.session.commit()
 
     
-
 class Map(db.Model, SerializerMixin):
     __tablename__ = 'maps'
     map_id = db.Column(db.Integer, primary_key=True)
@@ -216,7 +251,7 @@ class Map(db.Model, SerializerMixin):
             if not self.map_id:
                 db.session.add(self)
             db.session.commit()
-        except IntegrityError as e:
+        except IntegrityError:
             db.session.rollback()
             counter += 1
             if counter > 1:
@@ -237,28 +272,27 @@ class Map(db.Model, SerializerMixin):
         data['map_thumbnail_link'] = self.map_thumbnail_link
         data['views'] = self.view_count
         return data
-    
+
     def remove_owner(self):
-        self.owner_id = None 
+        self.owner_id = None
         db.session.commit()
 
     @classmethod
     def get_maps_by_owner(cls, owner_id):
         maps = cls.query.filter_by(owner_id=owner_id).all()
         return maps
-    
+
     @classmethod
     def get_most_viewed_maps(cls):
         maps = cls.query.order_by(sa.desc(cls.view_count)).limit(3).all()
         return maps
 
 
-
 class MapView(db.Model):
     __tablename__ = 'map_views'
     map_view_id = db.Column(db.Integer, primary_key=True)
-    map_id = db.Column(db.Integer, db.ForeignKey('maps.map_id') , nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id') , nullable=True)
+    map_id = db.Column(db.Integer, db.ForeignKey('maps.map_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
     ip_address = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
@@ -268,7 +302,7 @@ class GeographicDatasetView(db.Model):
     __tablename__ = 'geographic_dataset_views'
     geographic_dataset_view_id = db.Column(db.Integer, primary_key=True)
     geographic_dataset_id = db.Column(db.Integer, db.ForeignKey('geographic_datasets.geographic_dataset_id') , nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id') , nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
     ip_address = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
