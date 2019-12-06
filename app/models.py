@@ -27,6 +27,12 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     deleted_at = db.Column(db.DateTime, nullable=True)
 
+    @property
+    def maps_owned(self):
+        maps = Map.query.filter_by(owner_id=self.user_id).all()
+        map_list = [map.map_id for map in maps]
+        return map_list
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -320,7 +326,7 @@ class Map(db.Model, SerializerMixin):
 
     @classmethod
     def get_maps_by_owner(cls, owner_id):
-        maps = cls.query.filter_by(owner_id=owner_id).all()
+        maps = cls.query.filter_by(owner_id=owner_id).order_by(sa.desc(cls.map_id)).all()
         return maps
 
     @classmethod

@@ -1,50 +1,56 @@
 {% extends "base.html" %}
 
+{% block head %}
+{% endblock %}
+
 {% block content %}
-<main class="container" id="index-container">
-    {% if current_user.is_anonymous %}
-    <div class="row">
-        New here? Don't forget to <a href="{{ url_for('register') }}">register</a> so you can save your work. It's Free!
-    </div>
 
-    {% else %}
-    <div id="user-charts">
-        <div class="row">
-            <h5 class="row" id="user-charts-header">Dive back into your recent work:</h5>
+
+<main>
+    <div class="container">
+        {% if current_user.is_authenticated %}
+        <div class="row" id="user-maps-title">
+            <div class="col-sm-12"><h4>Dive back into your recent maps...</h4></div>
         </div>
-        <div class="card-deck">
-            {% for map in user_maps %}
-            <div class="card">
-                    <a href="{{ url_for('analysis')}}/{{map.map_id }}"><img src="static/thumbnails/{{map.map_thumbnail_link}}" class="card-img-top" alt="chart"></a>
-                <div class="card-body">
-                    <h5 class="card-title">{{map.title}}</h5>
+        <div class="map-card-section">
+            
+            <div class="row map-card-row">
+                {% for map in user_maps %}
+                {% include "partials/_map_card.html" %}
+                {% endfor %}
+            </div>
+            <div class="row see-more-row">
+                <div class="col-sm-12">
+                    <a href="{{ url_for('maps') }}">See more...</a>
                 </div>
             </div>
-            {% endfor %}
         </div>
-        <div class="row">
-            <a href="{{ url_for('maps') }}" id="user-charts-footer">View All</a>
+        {% else %}
+        <div class="jumbotron">
+            <h1 class="display-4">Welcome to American Health Mapper!</h1>
+            <p class="lead">AHM is a tool for exploring US health data. <a href="{{ url_for('analysis') }}">Make your own map</a>, or <a href="{{ url_for('maps') }}">explore someone else's.</a></p>
+            <hr class="my-4">
+            <p>Users can save their maps, add maps and datasets to their favorites, and upload new datasets.</p>
+            <p>So don't forget to <a href="{{ url_for('login') }}">log in</a> or <a href="{{ url_for('register') }}">sign up</a>.  It's free!</p>
         </div>
-    </div>
-    {% endif %}
-
-    <div id="recent-charts">
-        <div class="row">
-            <h5 class="row" id="user-charts-header">See what other people are working on:</h5>
+        {% endif %}
+        <div class="row" id="user-maps-title">
+            <div class="col-sm-12"><h4>Explore community maps...</h4></div>
         </div>
-        <div class="card-deck">
-            {% for map in all_maps %}
-            <div class="card">
-                    <a href="{{ url_for('analysis')}}/{{map.map_id }}"><img src="static/thumbnails/{{map.map_thumbnail_link}}" class="card-img-top" alt="chart"></a>
-                <div class="card-body">
-                    <h5 class="card-title">{{map.title}}</h5>
+        <div class="map-card-section">
+            <div class="row map-card-row">
+                {% for map in community_maps %}
+                {% include "partials/_map_card.html" %}
+                {% endfor %}
+            </div>
+            <div class="row see-more-row">
+                <div class="col-sm-12">
+                    <a href="{{ url_for('maps') }}">See more...</a>
                 </div>
             </div>
-            {% endfor %}
+        </div>
     </div>
-    <div class="row">
-            <a href="{{ url_for('maps') }}" id="user-charts-footer">Explore More</a>
-    </div>
-
 </main>
+
+<script src="{{ url_for('static',filename='js/maps.js') }}"></script>
 {% endblock %}
