@@ -48,6 +48,9 @@ class AppConfig:
     # S3
 
     S3_BUCKET = config.get('S3', 'bucket')
+    AWS_PUBLIC_KEY = config.get('S3', 'public_key')
+    AWS_PRIVATE_KEY = config.get('S3', 'private_key')
+    DEFAULT_REGION = config.get('S3', 'defaul_region')
 
     @staticmethod
     def get_uri(database_name):
