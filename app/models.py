@@ -33,6 +33,12 @@ class User(UserMixin, db.Model):
         map_list = [map.map_id for map in maps]
         return map_list
 
+    @property
+    def maps_favorited(self):
+        maps = MapFavorite.query.filter_by(user_id=self.user_id).all()
+        map_list = [map.map_id for map in maps]
+        return map_list
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -279,6 +285,7 @@ class Map(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())
     views = db.relationship('MapView', backref='map')
+    favorites = db.relationship('MapFavorite', backref='map')
     primary_dataset = db.relationship("GeographicDataset", foreign_keys=[primary_dataset_id])
     secondary_dataset = db.relationship("GeographicDataset", foreign_keys=[secondary_dataset_id])
     __table_args__ = (db.UniqueConstraint('title', 'owner_id', name='_title_owner_uc'),)
@@ -292,6 +299,16 @@ class Map(db.Model, SerializerMixin):
     @view_count.expression
     def view_count(cls):
         return sa.select([sa.func.count(MapView.map_view_id)]).where(MapView.map_id == cls.map_id)
+
+    @hybrid_property
+    def favorite_count(self):
+        if self.favorites:
+            return len(self.favorites)
+        return 0
+
+    @favorite_count.expression
+    def favorite_count(cls):
+        return sa.select([sa.func.count(MapFavorite.map_favorite_id)]).where(MapFavorite.map_id == cls.map_id)
 
     def save(self, counter=0):
         try:
@@ -318,6 +335,7 @@ class Map(db.Model, SerializerMixin):
         data['owner'] = User.query.get(self.owner_id).username
         data['map_thumbnail_link'] = self.map_thumbnail_link
         data['views'] = self.view_count
+        data['favorites'] = self.favorite_count
         return data
 
     def remove_owner(self):
