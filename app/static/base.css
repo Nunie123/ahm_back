@@ -4,6 +4,10 @@
     background-color: #E4D9E8
 }
 
+.navbar-light .navbar-brand {
+    color: #480062;
+}
+
 
 /* MAPS PAGE ---------------- */
 .map-card-section{
