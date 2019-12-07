@@ -12,9 +12,6 @@
     margin-bottom: 40px;
 }
 
-.card-img-top {
-    height: 220px;
-}
 .map-card-row .card-content {
     height: 180px;
     overflow-y: scroll;
@@ -37,4 +34,14 @@
 .see-more-row{
     text-align: right;
     margin-top: -25px;
+}
+
+
+.thumbnail {
+    position: relative;
+    float: left;
+    height: 220px;
+    background-position: 50% 50%;
+    background-repeat:   no-repeat;
+    background-size:     cover;
 }
