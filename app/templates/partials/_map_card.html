@@ -14,12 +14,16 @@
             <p class="card-text">
                 <label>created by:</label> {{ map.owner }} <br>
                 <label>views:</label> {{ map.views }} <br>
-                <label>favorites:</label> 12
+                <label>favorites:</label> {{ map.favorites }}
             </p>
         </div>
         <div class="card-body">
             <a href="analysis/{{ map.map_id }}" class="btn btn-primary">View</a>
-            <a href="javascript:;" class="btn btn-primary favorite-button" data-map-id="{{ map.map_id }}"><i class="fas fa-heart"></i>+</a>
+            {% if map.map_id in current_user.maps_favorited %}
+            <a href="javascript:;" class="btn btn-primary favorite-map-button" data-map-id="{{ map.map_id }}" data-fav="yes"><i class="fas fa-heart"></i>-</a>
+            {% else %}
+            <a href="javascript:;" class="btn btn-primary favorite-map-button" data-map-id="{{ map.map_id }}" data-fav="no"><i class="fas fa-heart"></i>+</a>
+            {% endif %}
             {% if map.map_id in current_user.maps_owned  or current_user.is_admin %}
             <div class="btn-group">
                 <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

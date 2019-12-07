@@ -353,13 +353,22 @@ def add_favorite(map_id):
         .filter_by(map_id=map_id, user_id=current_user.user_id).first()
     if duplicate_fav:
         msg = "This map is already a favorite."
-        flash(msg)
         return jsonify(success=False, msg=msg)
     try:
         fav = models.MapFavorite(map_id=map_id, user_id=current_user.user_id)
         db.session.add(fav)
         db.session.commit()
-        flash('Added to Favorites.')
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, msg=e)
+
+
+@login_required
+@app.route('/maps/<map_id>/remove_favorite', methods=['GET'])
+def remove_favorite(map_id):
+    try:
+        models.MapFavorite.query.filter_by(map_id=map_id, user_id=current_user.user_id).delete()
+        db.session.commit()
         return jsonify(success=True)
     except Exception as e:
         return jsonify(success=False, msg=e)

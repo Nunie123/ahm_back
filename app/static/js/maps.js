@@ -15,10 +15,20 @@ async function deleteMap(e){
     }
 }
 
-async function addFavorite(e){
-    const node = e.target;
+async function toggleFavorite(e){
+    const node = e.target.closest('.favorite-map-button');
     const mapId = node.dataset.mapId;
-    const url = `${SCRIPT_ROOT}maps/${mapId}/add_favorite`;
+    const signNode = node.childNodes[1];
+    let url;
+    if(node.dataset.fav == 'yes'){
+        node.dataset.fav = 'no';
+        signNode.nodeValue = '+';
+        url = `${SCRIPT_ROOT}maps/${mapId}/remove_favorite`;
+    } else {
+        node.dataset.fav = 'yes';
+        signNode.nodeValue = '-';
+        url = `${SCRIPT_ROOT}maps/${mapId}/add_favorite`;
+    }
     const response = await fetch(url);
     const json = await response.json();
     if(json.success != true){
@@ -27,13 +37,14 @@ async function addFavorite(e){
 }
 
 function addMapsEventListeners(){
-    var deleteButtons = document.getElementsByClassName("delete-map-button");
+    let deleteButtons = document.getElementsByClassName("delete-map-button");
     Array.from(deleteButtons).forEach(function(element) {
         element.addEventListener('click', deleteMap);
     });
 
-    var favoriteButtons = document.getElementsByClassName("favorite-button");
+    let favoriteButtons = document.getElementsByClassName("favorite-map-button");
     Array.from(favoriteButtons).forEach(function(element) {
-        element.addEventListener('click', addFavorite);
+        element.addEventListener('click', toggleFavorite);
     });
+
 }
