@@ -1,3 +1,12 @@
+{% set left_nav = [
+    ('index', 'Home'),
+    ('maps', 'Maps'),
+    ('datasets', 'Datasets'),
+    ('analysis', 'Analysis')
+    ]
+%}
+{% set active_page = active_page|default('index') %}
+
 <!doctype html>
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
@@ -24,11 +33,13 @@
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <div class="navbar-nav">
-                    <a class="nav-item nav-link" href="{{ url_for('index') }}">Home<span class="sr-only">(current)</span></a>
-                    <a class="nav-item nav-link" href="{{ url_for('maps') }}">Maps</a>
-                    <a class="nav-item nav-link" href="{{ url_for('datasets') }}">Datasets</a>
-                    <a class="nav-item nav-link" href="{{ url_for('analysis') }}">Analysis</a>
-                    <a class="nav-item nav-link" href="{{ url_for('support') }}">Support</a>
+                    {% for page, title in left_nav %}
+                    {% if page == active_page %}
+                    <a class="nav-item nav-link active" href="{{ url_for(page) }}">{{title}}</a>
+                    {% else %}
+                    <a class="nav-item nav-link" href="{{ url_for(page) }}">{{title}}</a>
+                    {% endif %}
+                    {% endfor %}
                 </div>
             </div>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -36,9 +47,11 @@
                     {% if current_user.is_anonymous %}
                     <a class="nav-item nav-link" href="{{ url_for('register') }}">Register</a>
                     <a class="nav-item nav-link" href="{{ url_for('login') }}">Log In</a>
+                    <a class="nav-item nav-link" href="{{ url_for('support') }}">Support</a>
                     {% else %}
                     <a class="nav-item nav-link" href="{{ url_for('settings') }}">Logged in as: {{ current_user.username }}</a>
                     <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
+                    <a class="nav-item nav-link" href="{{ url_for('support') }}">Support</a>
                     {% endif %}
                 </div>
             </div>

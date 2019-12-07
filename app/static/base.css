@@ -1,5 +1,10 @@
 
 
+.nav-link.active {
+    background-color: #E4D9E8
+}
+
+
 /* MAPS PAGE ---------------- */
 .map-card-section{
     background-color: #EEEEEE;
