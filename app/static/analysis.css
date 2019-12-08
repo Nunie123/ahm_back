@@ -15,6 +15,10 @@ main, .outer-container, #data-content, #data-view {
     flex-direction: column;
     flex: 1;
 }
+#data-view {
+    padding-left: 0;
+    padding-right: 0;
+}
 #map {
     height: 100%;
     flex: 1;
@@ -23,23 +27,41 @@ main, .outer-container, #data-content, #data-view {
 
 /* MAP NAV BUTTONS */
 #data-nav {
-    margin:0;
+    margin-left: -14px;
+    margin-right: -14px;
     padding: 0;
 }
 #map-title-label{
     padding-right: 5px;
 }
+#map-title{
+    margin-right: 15px;
+    width: 280px;
+}
+.btn-purple, .btn-outline-purple:hover{
+    color: #fff;
+    background-color: #480062;
+    border-color: #480062;
+}
+.btn-outline-purple{
+    color: #480062;
+    border-color: #480062;
+}
 
 /* SIDEBAR */
 #map-side-panel {
     height: 100%;
-    background-color: #e0e0e0;
+    background-color: rgba(219, 204, 224, 0.5);
     position: absolute;
     top: 0;
     z-index: 1001;
     width:400px;
-    overflow-y: auto;
     cursor: default;
+    border-right: 1px solid lightgray;
+}
+#attribute-options{
+    height: 100%;
+    overflow: auto;
 }
 .visible-panel{
     left: 0;
@@ -50,9 +72,6 @@ main, .outer-container, #data-content, #data-view {
     left: -400px;
     transition-property: left;
     transition-duration: 0.5s;
-}
-#attribute-options{
-    overflow-x: auto;
 }
 button.dataset-btn{
     padding-left: 35px;
@@ -84,6 +103,15 @@ button.dataset-btn{
     width: 70px;
     height: 25px;
     text-align: center;
+}
+#attribute-options>button{
+    background-color: #e6dfe8;
+}
+#attribute-options>div>button{
+    background-color: #f3ebf5;
+}
+#attribute-options button.year-button, #attribute-options div.attribute-years>button{
+    background-color: #fbfbfb96;
 }
 
 /* INFO BOX */

@@ -196,8 +196,8 @@ class Choropleth {
     showMapView(e){
         let node = e.target;
         TableView.makeMapNavButtonsInactive();
-        node.classList.toggle('btn-success');
-        node.classList.toggle('btn-outline-success');
+        node.classList.toggle('btn-purple');
+        node.classList.toggle('btn-outline-purple');
         hideById('table-view');
         showById('map');
         hideById('statistics-view');
