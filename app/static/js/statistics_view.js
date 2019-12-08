@@ -1,4 +1,4 @@
-import { deleteChildren, hideById, showById } from './helpers.mjs';
+import { deleteChildren, hideById, showById } from './helpers.js';
 import { TableView } from './table_view.js';
 
 var jStat = window.jStat;  //imported from analysis.html
