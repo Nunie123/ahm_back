@@ -76,7 +76,7 @@ main, .outer-container, #data-content, #data-view {
 button.dataset-btn{
     padding-left: 35px;
 }
-.attribute-remove-button{
+div.row>div.attribute-remove-button{
     cursor: pointer;
     text-align: center;
 }
@@ -85,6 +85,7 @@ button.dataset-btn{
     border: 3px solid gray;
     padding: 4px;
     font-size: 1.2em;
+    text-align: center;
 }
 #side-panel-toggle{
     transform: rotate(90deg);
