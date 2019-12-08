@@ -1,4 +1,4 @@
-import { deleteChildren, hideById, showById } from './helpers.mjs';
+import { deleteChildren, hideById, showById } from './helpers.js';
 
 class TableView {
     constructor(choropleth){

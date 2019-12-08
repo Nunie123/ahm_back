@@ -1,4 +1,4 @@
-import { deleteChildrenById, postData } from './helpers.mjs';
+import { deleteChildrenById, postData } from './helpers.js';
 
 function addUploadEventListener() {
     let fileSelectInput = document.getElementById('file-import');

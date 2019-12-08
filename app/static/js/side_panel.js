@@ -1,5 +1,5 @@
 import { updateLegend } from './legend.js';
-import { deleteChildren } from './helpers.mjs';
+import { deleteChildren } from './helpers.js';
 
 const URLSearchParams = window.URLSearchParams;  //JSHint doesn't recognize this global object
 var URL_ROOT = window.SCRIPT_ROOT;  //imported from analysis.html

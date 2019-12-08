@@ -1,5 +1,5 @@
 import { TableView } from './table_view.js';
-import { hideById, showById, postData } from './helpers.mjs';
+import { hideById, showById, postData } from './helpers.js';
 
 const L = window.L;  
 const URL_ROOT = window.SCRIPT_ROOT;  
