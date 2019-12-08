@@ -2,7 +2,7 @@ from datetime import datetime
 import base64
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
-from app import app, db, models
+from app import app, db, models, file_handler
 from app.forms import (RegistrationForm, LoginForm, PasswordForm, EmailForm,
                        SupportForm)
 from app.email import send_email
@@ -18,10 +18,16 @@ def index():
         user_maps = models.Map.get_maps_by_owner(user_id)
         user_maps = [map.get_map_card_data() for map in user_maps]
         user_maps = user_maps[:3]
+        for map in user_maps:
+            user_map_link = file_handler.generate_image_path(map)
+            map['s3_link'] = user_map_link
 
     community_maps = models.Map.get_most_viewed_maps()
     community_maps = [map.get_map_card_data() for map in community_maps]
     community_maps = community_maps[:3]
+    for map in community_maps:
+        community_map_link = file_handler.generate_image_path(map)
+        map['s3_link'] = community_map_link
     return render_template('index.html', user_maps=user_maps,
                            community_maps=community_maps)
 
@@ -262,11 +268,8 @@ def save_thumbnail(map_id):
     image_data = raw_image[raw_image.find(b'base64')+7:]
     user_map = models.Map.query.get(map_id)
     filename = f'{user_map.title}_{map_id}.jpg'
-    thumbnail_link = f'static/thumbnails/{filename}'
-    filepath = 'app/' + thumbnail_link
-    with open(filepath, "wb") as fh:
-        fh.write(base64.decodestring(image_data))
-    user_map.map_thumbnail_link = thumbnail_link
+    file_handler.upload_image(image_data, filename, 'thumbnails')
+    user_map.map_thumbnail_link = filename
     db.session.commit()
     return jsonify(success=True)
 
@@ -329,10 +332,16 @@ def maps():
         user_id = current_user.get_id()
         user_maps = models.Map.get_maps_by_owner(user_id)
         user_maps = [map.get_map_card_data() for map in user_maps]
+        for map in user_maps:
+            user_map_link = file_handler.generate_image_path(map)
+            map['s3_link'] = user_map_link
         user_maps = helpers.convert_to_list_of_lists(user_maps, 3)
 
     community_maps = models.Map.get_most_viewed_maps()
     community_maps = [map.get_map_card_data() for map in community_maps]
+    for map in community_maps:
+        community_map_link = file_handler.generate_image_path(map)
+        map['s3_link'] = community_map_link
     community_maps = helpers.convert_to_list_of_lists(community_maps, 3)
     return render_template('maps.html', user_maps=user_maps,
                            community_maps=community_maps)
