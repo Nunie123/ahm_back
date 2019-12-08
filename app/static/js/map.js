@@ -274,7 +274,10 @@ class Choropleth {
         this.mapId = dataResponse.map_id;
     
         const imageResponse = await saveMapImage(this.mapId);
-            
+
+        if(saveAsNew || !('mapId' in mapDetails)){
+            window.location = `${URL_ROOT}analysis/${this.mapId}`;  
+        }
     }
 
     async downloadMapAsJpg(){

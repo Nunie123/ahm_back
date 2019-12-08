@@ -196,7 +196,8 @@ def analysis():
     return render_template('analysis.html',
                            default_dataset_list=serialized_default,
                            personal_dataset_list=user_datasets,
-                           favorite_dataset_list=favorite_datasets)
+                           favorite_dataset_list=favorite_datasets,
+                           preloaded_map=None)
 
 
 @app.route('/analysis/<map_id>', methods=['GET'])
@@ -228,11 +229,14 @@ def get_map(map_id):
 @app.route('/analysis/save', methods=['POST'])
 def save_map():
     params = request.get_json()
-    params['owner_id'] = current_user.user_id
     if params.get('mapId'):
+        print('saving existing map')
+        print('map id:', params.get('mapId'))
         user_map = models.Map.query.get(params.get('mapId'))
     else:
+        print('saving new map')
         user_map = models.Map()
+        user_map.owner_id = current_user.user_id
         db.session.add(user_map)
     user_map.primary_dataset_id = params.get('dataset1')
     user_map.secondary_dataset_id = params.get('dataset2')
@@ -243,7 +247,6 @@ def save_map():
     user_map.hex_color_1 = params.get('color1')
     user_map.hex_color_2 = params.get('color2')
     user_map.title = params.get('title', '')
-    user_map.owner_id = params.get('owner_id')
     user_map.is_public = params.get('isPublic')
     user_map.zoom_level = params.get('zoom')
     user_map.center_coordinates = params.get('coordinates')

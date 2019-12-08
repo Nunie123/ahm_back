@@ -31,11 +31,11 @@
     </main>
 </div>
 <script>
-        var PRELOADED_MAP;
-        {% if preloaded_map %}
-        PRELOADED_MAP = {{ preloaded_map|tojson|safe}};
-        {% endif %}
-    </script>
+    var PRELOADED_MAP;
+    {% if preloaded_map %}
+    PRELOADED_MAP = {{ preloaded_map|tojson|safe}};
+    {% endif %}
+</script>
 
 <script src="{{ url_for('static',filename='js/papaparse.min.js') }}"></script>
 <script type="module" src="{{ url_for('static',filename='js/analysis.js') }}"></script>

@@ -7,26 +7,33 @@
     <form class="form-inline my-2 my-sm-0">
         <label id="map-title-label">Title:</label>
         <input type="text" placeholder="Map Title" value="Untitled Map" class="form-control" id="map-title">
-        {% if current_user.is_authenticated %}
+        {% if current_user.is_authenticated and preloaded_map['map_id'] in current_user.maps_owned or not preloaded_map['map_id'] %}
             {% set tooltip_class = '' %}
-            {% set disabled = '' %}
+            {% set save_disabled = '' %}
+            {% set save_as_disabled = '' %}
+            {% set span_style = 'style=display:none;' %}
+        {% elif current_user.is_authenticated %}
+            {% set tooltip_class = '' %}
+            {% set save_disabled = 'disabled' %}
+            {% set save_as_disabled = '' %}
             {% set span_style = 'style=display:none;' %}
         {% else %}
             {% set tooltip_class = 'tooltips' %}
             {% set disabled = 'disabled' %}
+            {% set save_as_disabled = '' %}
             {% set span_style = '' %}
         {% endif %}
         <div class="btn-group">
-            <button type="button" class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" id="save-map-button" data-saveAsNew="no" {{ disabled }}>
+            <button type="button" class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" id="save-map-button" data-save-as-new="no" {{ save_disabled }}>
                 Save
                 <span class="tooltiptext" {{ span_style }}>Must be logged in to save map.</span>
             </button>
             <button type="button" class="btn btn-outline-info my-2 my-sm-0 dropdown-toggle dropdown-toggle-split" 
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" {{ disabled }}>
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" {{ save_as_disabled }}>
                 <span class="sr-only">Toggle Dropdown</span>
             </button>
             <div class="dropdown-menu">
-                <a class="dropdown-item" href="javascript:;" id="save-as-map-button" data-saveAsNew="yes" >Save as New</a>
+                <a class="dropdown-item" href="javascript:;" id="save-as-map-button" data-save-as-new="yes" >Save Copy</a>
             </div>
         </div>
         <div class="dropdown">

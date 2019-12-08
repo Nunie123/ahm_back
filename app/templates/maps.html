@@ -10,10 +10,10 @@
 <main>
     <div class="container">
         {% if current_user.is_authenticated %}
+        <div class="row" id="user-maps-title">
+            <div class="col-sm-12"><h4>Your Maps</h4></div>
+        </div>
         <div class="map-card-section">
-            <div class="row" id="user-maps-title">
-                <div class="col-sm-12"><h3>Your Maps</h3></div>
-            </div>
             {% for row in user_maps %}
             <div class="row map-card-row">
                 {% for map in row %}
@@ -23,18 +23,18 @@
             {% endfor %}
         </div>
         {% endif %}
-        <div class="map-card-section">
-            <div class="row" id="user-maps-title">
-                <div class="col-sm-12"><h3>Community Maps</h3></div>
+        <div class="row" id="user-maps-title">
+                <div class="col-sm-12"><h4>Community Maps</h4></div>
             </div>
-            {% for row in community_maps %}
-            <div class="row map-card-row">
-                {% for map in row %}
-                {% include "partials/_map_card.html" %}
+            <div class="map-card-section">
+                {% for row in community_maps %}
+                <div class="row map-card-row">
+                    {% for map in row %}
+                    {% include "partials/_map_card.html" %}
+                    {% endfor %}
+                </div>
                 {% endfor %}
             </div>
-            {% endfor %}
-        </div>
     </div>
 </main>
 
