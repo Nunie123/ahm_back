@@ -12,8 +12,8 @@ class StatisticsView {
     showStatisticsView(e){
         let node = e.target;
         TableView.makeMapNavButtonsInactive();
-        node.classList.toggle('btn-success');
-        node.classList.toggle('btn-outline-success');
+        node.classList.toggle('btn-purple');
+        node.classList.toggle('btn-outline-purple');
         this.renderStatisticsView();
         hideById('map');
         hideById('table-view');

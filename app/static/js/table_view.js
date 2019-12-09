@@ -44,8 +44,8 @@ class TableView {
     showTableView(e){
         let node = e.target;
         TableView.makeMapNavButtonsInactive();
-        node.classList.toggle('btn-success');
-        node.classList.toggle('btn-outline-success');
+        node.classList.toggle('btn-purple');
+        node.classList.toggle('btn-outline-purple');
         this.renderTableView();
         hideById('map');
         showById('table-view');
@@ -54,10 +54,10 @@ class TableView {
 
     static makeMapNavButtonsInactive(){
         let nav = document.getElementById('data-nav');
-        let children = nav.getElementsByClassName('btn-success');
+        let children = nav.getElementsByClassName('btn-purple');
         for (let child of children){
-            child.classList.remove('btn-success');
-            child.classList.add('btn-outline-success');
+            child.classList.remove('btn-purple');
+            child.classList.add('btn-outline-purple');
         }
     }
 }

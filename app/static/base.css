@@ -1,7 +1,7 @@
 
 
 .nav-link.active {
-    background-color: #E4D9E8
+    border-bottom: 5px solid #E4D9E8
 }
 
 .navbar-light .navbar-brand {

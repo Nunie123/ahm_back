@@ -1,8 +1,8 @@
 <nav class="navbar navbar-light bg-light" id="data-nav">
     <form class="form-inline">
-        <button class="btn btn-success" type="button" id="map-view-button">Map</button>
-        <button class="btn btn-outline-success" type="button" id="table-view-button">Table</button>
-        <button class="btn btn-outline-success" type="button" id="statistics-view-button">Statistics</button>
+        <button class="btn btn-purple" type="button" id="map-view-button">Map</button>
+        <button class="btn btn-outline-purple" type="button" id="table-view-button">Table</button>
+        <button class="btn btn-outline-purple" type="button" id="statistics-view-button">Statistics</button>
     </form>
     <form class="form-inline my-2 my-sm-0">
         <label id="map-title-label">Title:</label>
@@ -24,11 +24,11 @@
             {% set span_style = '' %}
         {% endif %}
         <div class="btn-group">
-            <button type="button" class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" id="save-map-button" data-save-as-new="no" {{ save_disabled }}>
+            <button type="button" class="btn btn-outline-purple my-2 my-sm-0 {{ tooltip_class }}" id="save-map-button" data-save-as-new="no" {{ save_disabled }}>
                 Save
                 <span class="tooltiptext" {{ span_style }}>Must be logged in to save map.</span>
             </button>
-            <button type="button" class="btn btn-outline-info my-2 my-sm-0 dropdown-toggle dropdown-toggle-split" 
+            <button type="button" class="btn btn-outline-purple my-2 my-sm-0 dropdown-toggle dropdown-toggle-split" 
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" {{ save_as_disabled }}>
                 <span class="sr-only">Toggle Dropdown</span>
             </button>
@@ -37,7 +37,7 @@
             </div>
         </div>
         <div class="dropdown">
-            <button class="btn btn-outline-info dropdown-toggle" type="button" id="dropdownMenuButton"
+            <button class="btn btn-outline-purple dropdown-toggle" type="button" id="dropdownMenuButton"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Download
             </button>
@@ -50,7 +50,7 @@
             </div>
         </div>
         <button type="button" data-toggle="modal" data-target="#import-modal"
-            class="btn btn-outline-info my-2 my-sm-0 {{ tooltip_class }}" id="import-button" {{ disabled }}>
+            class="btn btn-outline-purple my-2 my-sm-0 {{ tooltip_class }}" id="import-button" {{ disabled }}>
             Import Dataset
             <span class="tooltiptext" {{ span_style }}>Must be logged in to import data.</span> 
         </button>
