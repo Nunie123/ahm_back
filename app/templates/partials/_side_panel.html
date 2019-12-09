@@ -1,18 +1,27 @@
+{% set sources = [
+    ('Default Data Sources', default_dataset_list),
+    ('Personal Data Sources', personal_dataset_list),
+    ('Favorite Data Sources', favorite_dataset_list)
+    ]
+%}
+
+
 <div id="map-side-panel" class="visible-panel">
     <div id="attribute-selections">
         <div class="container-fluid" id="selected-attributes"></div>
     </div>
     
     <div class="list-group" id="attribute-options">
-        <button type="button" id="default-sources-btn" class="list-group-item list-group-item-action list-group-item-primary">
-            <i class="far fa-plus-square"></i> Default Data Sources
+        {% for source_name, dataset_list in sources %}
+        <button type="button" id="default-sources-btn" class="list-group-item list-group-item-action list-group-item-primary source-btn">
+            <i class="far fa-plus-square"></i> {{ source_name }}
         </button>
         <div class="list-group" id="default-data-sources" style="display: none;">
-            {% for dataset in default_dataset_list %}
-            <button type="button" id="default-attributes-btn" class="list-group-item list-group-item-action list-group-item-info  dataset-btn">
+            {% for dataset in dataset_list %}
+            <button type="button" class="list-group-item list-group-item-action list-group-item-info  dataset-btn">
                 <i class="far fa-plus-square"></i> {{ dataset.name }}
             </button>
-            <div class="list-group" id="default-data-attributes" style="display: block;">
+            <div class="list-group" style="display: none;">
                 {% for attribute in dataset.distinct_geographic_attribute_names %}
                 <div>
                     <button type="button" 
@@ -27,29 +36,7 @@
             </div>
             {% endfor %}
         </div>
-        <button type="button" class="list-group-item list-group-item-action list-group-item-primary">
-            <i class="far fa-plus-square"></i> Personal Data Sources
-        </button>
-        <div class="list-group" id="user-data-sources" style="display: none;">
-            {% for dataset in personal_dataset_list %}
-            <button type="button" id="personal-attributes-btn" class="list-group-item list-group-item-action list-group-item-info  dataset-btn">
-                {{ dataset.name }}
-            </button>
-            <div class="list-group" id="default-data-attributes" style="display: block;">
-                {% for attribute in dataset.distinct_geographic_attribute_names %}
-                <button type="button" 
-                        data-source-id="{{ attribute['dataset_id'] }}" 
-                        class="list-group-item list-group-item-action list-group-item-light year-button">
-                    {{ attribute['name'] }}
-                    <div class="attribute-years"></div>
-                </button>
-                {% endfor %}
-            </div>
-            {% endfor %}
-        </div>
-        <button type="button" class="list-group-item list-group-item-action list-group-item-primary">
-            <i class="far fa-plus-square"></i> Favorite Data Sources
-        </button>
+        {% endfor %}        
     </div>
 </div>
 
