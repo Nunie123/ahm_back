@@ -87,19 +87,21 @@ class SidePanel {
     }
 
     toggleAttributes(e){
-        var attributesList;
-        if(e.target.id.slice(0,7) == 'default'){
-            attributesList = document.getElementById('default-data-attributes');
-        }
-        attributesList.style.display = (attributesList.style.display === 'none') ? 'block' : 'none';
+        let button = e.target.closest('.dataset-btn');
+        let list = button.nextSibling.nextSibling;
+        list.style.display = (list.style.display === 'none') ? 'block' : 'none';
+        let icon = button.children[0];
+        icon.classList.toggle('fa-plus-square');
+        icon.classList.toggle('fa-minus-square');
     }
     
     toggleSources(e){
-        var sourceList;
-        if(e.target.id.slice(0,7) == 'default'){
-            sourceList = document.getElementById('default-data-sources');
-        }
-        sourceList.style.display = (sourceList.style.display === 'none') ? 'block' : 'none';
+        let button = e.target.closest('.source-btn');
+        let list = button.nextSibling.nextSibling;
+        list.style.display = (list.style.display === 'none') ? 'block' : 'none';
+        let icon = button.children[0];
+        icon.classList.toggle('fa-plus-square');
+        icon.classList.toggle('fa-minus-square');
     }
     
     async toggleYearList(e){
@@ -150,5 +152,6 @@ class SidePanel {
     }
 
 }
+
 
 export { SidePanel };

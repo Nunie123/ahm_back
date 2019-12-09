@@ -26,9 +26,12 @@ var sidePanelNode = document.getElementById('map-side-panel');
 sidePanelNode.addEventListener('pointerover', function() { choropleth.map.scrollWheelZoom.disable(); });
 sidePanelNode.addEventListener('pointerleave', function() { choropleth.map.scrollWheelZoom.enable(); });
 
-document.getElementById('default-sources-btn').addEventListener('click', sidePanel.toggleSources);
-document.getElementById('default-attributes-btn').addEventListener('click', sidePanel.toggleAttributes);
 document.getElementById('side-panel-toggle').addEventListener('click', sidePanel.toggleSideBar);
+
+var sourceButtons = document.getElementsByClassName("source-btn");
+Array.from(sourceButtons).forEach(function(element) {
+    element.addEventListener('click', sidePanel.toggleSources);
+});
 
 var datasetButtons = document.getElementsByClassName("dataset-btn");
 Array.from(datasetButtons).forEach(function(element) {
