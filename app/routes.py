@@ -412,12 +412,16 @@ def remove_favorite(map_id):
 
 @app.route('/datasets', methods=['GET'])
 def datasets():
-    user_datasets = models.GeographicDataset.get_datasets_and_attributes_by_owner(current_user.user_id)
-    for dataset in user_datasets:
-        dataset['attributes'] = helpers.convert_to_list_of_lists(dataset['attributes'], 2)
-    favorite_datasets = models.GeographicDataset.get_favorite_datasets_and_attributes(current_user)
-    for dataset in favorite_datasets:
-        dataset['attributes'] = helpers.convert_to_list_of_lists(dataset['attributes'], 2)
+    if current_user.is_authenticated:
+        user_datasets = models.GeographicDataset.get_datasets_and_attributes_by_owner(current_user.user_id)
+        for dataset in user_datasets:
+            dataset['attributes'] = helpers.convert_to_list_of_lists(dataset['attributes'], 2)
+        favorite_datasets = models.GeographicDataset.get_favorite_datasets_and_attributes(current_user)
+        for dataset in favorite_datasets:
+            dataset['attributes'] = helpers.convert_to_list_of_lists(dataset['attributes'], 2)
+    else:
+        user_datasets = []
+        favorite_datasets = []
     popular_datasets = models.GeographicDataset.get_popular_datasets_and_attributes()
     for dataset in popular_datasets:
         dataset['attributes'] = helpers.convert_to_list_of_lists(dataset['attributes'], 2)

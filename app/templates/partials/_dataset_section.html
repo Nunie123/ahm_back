@@ -26,10 +26,12 @@
                 </a>
             </div>
             <div class="col-sm-2">
+                {% if current_user.is_authenticated %}
                 {% if dataset['source_id'] in current_user.datasets_favorited %}
                 <a href="javascript:;" class="btn btn-primary favorite-data-button" data-source-id="{{ dataset['source_id'] }}" data-fav="yes"><i class="fas fa-heart"></i>-</a>
                 {% else %}
                 <a href="javascript:;" class="btn btn-primary favorite-data-button" data-source-id="{{ dataset['source_id']}}" data-fav="no"><i class="fas fa-heart"></i>+</a>
+                {% endif %}
                 {% endif %}
                 {% if dataset['source_id'] in current_user.datasets_owned or current_user.is_admin %}
                 <div class="btn-group">
