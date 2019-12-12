@@ -6,10 +6,11 @@
 
 {% block content %}
 <main>
-    <div class="container">
+    <div class="container utility-form-container">
         <h1>Support</h1>
-        <form action="" method="post">
+        <form action="" method="post" class="utility-form">
             {{ form.hidden_tag() }}
+            <p>Have a comment or suggestion? We'd love to hear from you.  Use the form below and we'll get back to you shortly. </p>
             <p>
                 {{ form.name.label }}<br>
                 {{ form.name(size=32) }}<br>
@@ -38,7 +39,7 @@
                 <span style="color: red;">[{{ error }}]</span>
                 {% endfor %}
             </p>
-            <p>{{ form.submit() }}</p>
+            <p>{{ form.submit(class_="btn btn-primary") }}</p>
         </form>
     </div>
 </main>

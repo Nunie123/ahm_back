@@ -93,3 +93,13 @@ label{
     color: #480062;
     margin-top: 50px;
 }
+
+/* Utility Forms --------------- */
+.utility-form{
+    padding: 70px;
+    background-color: #f3f3f3;
+    border-radius: 5px;
+}
+.utility-form-container{
+    max-width: 700px;
+}
