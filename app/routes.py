@@ -1,5 +1,4 @@
 from datetime import datetime
-import base64
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from app import app, db, models, file_handler
@@ -311,6 +310,8 @@ def get_data_attribute():
     dataset_id = request.args.get('datasetId')
     attribute_name = request.args.get('attributeName')
     attribute_year = request.args.get('attributeYear')
+    if attribute_year == 'Unspecified Year':
+        attribute_year = None
     attribute_list = models.GeographicAttribute.query\
         .filter_by(dataset_id=dataset_id,
                    attribute_name=attribute_name,
@@ -330,12 +331,17 @@ def save_dataset():
     dataset_dict.pop('year', None)
     attributes = data['data']
 
-    dataset = models.GeographicDataset(dataset_dict)
-    db.session.add(dataset)
-    db.session.commit()
-    models.GeographicAttribute.bulk_insert(attributes,
-                                           dataset.geographic_dataset_id)
-    return jsonify(success=True)
+    try:
+        dataset = models.GeographicDataset(dataset_dict)
+        db.session.add(dataset)
+        db.session.flush()
+        models.GeographicAttribute.bulk_insert(attributes, dataset.geographic_dataset_id)
+        db.session.commit()
+        return jsonify(success=True)
+    except Exception as e:
+        print(e)
+        db.session.rollback()
+        return jsonify(success=False, msg="Error occurred while saving to the database.")
 
 
 @app.errorhandler(404)

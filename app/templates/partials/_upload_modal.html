@@ -53,9 +53,25 @@
                     </div>
                 </form>
                 <hr>
+                <div id="data-format-selector">
+                    <div class="row">
+                        <div class="col-sm-12" id="data-format-selector-prompt">Select the format of your data:</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <span class="format-selector-box" data-data-format="1">
+                                <img src="{{ url_for('static',filename='images/ahm_upload_1.png') }}" alt="data table diagram" height="450">
+                            </span>
+                            <span class="format-selector-box" data-data-format="2">
+                                <img src="{{ url_for('static',filename='images/ahm_upload_2.png') }}" alt="data table diagram" height="450">
+                            </span>
+                        </div>
+                    </div>
+                </div>
                 <table id="field-mapper"></table>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" id="import-footer">
+                <div id="import-error-message"></div>
                 <button id="upload-file-button" type="button" class="btn btn-primary" disabled>Upload</button>
                 <button id="close-modal-button" type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
             </div>
