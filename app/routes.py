@@ -47,7 +47,7 @@ def support():
         db.session.add(ticket)
         db.session.commit()
         confirmation = render_template('support_email.html',
-                                       ticket=ticket.get_id())
+                                       ticket_number=ticket.get_id())
         subject = "Support ticket submitted"
         send_email(form.email.data, subject, confirmation)
         internal_ticket = render_template('support_ticket.html',
