@@ -58,6 +58,8 @@ main, .outer-container, #data-content, #data-view {
     width:400px;
     cursor: default;
     border-right: 1px solid lightgray;
+    display: flex;
+    flex-direction: column;
 }
 #attribute-options{
     height: 100%;
