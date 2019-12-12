@@ -49,7 +49,7 @@
                     <a class="nav-item nav-link" href="{{ url_for('login') }}">Log In</a>
                     <a class="nav-item nav-link" href="{{ url_for('support') }}">Support</a>
                     {% else %}
-                    <a class="nav-item nav-link" href="{{ url_for('settings') }}">Logged in as: {{ current_user.username }}</a>
+                    <a class="nav-item nav-link" href="{{ url_for('support') }}">Logged in as: {{ current_user.username }}</a>
                     <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
                     <a class="nav-item nav-link" href="{{ url_for('support') }}">Support</a>
                     {% endif %}
