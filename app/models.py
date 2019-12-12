@@ -129,11 +129,12 @@ class GeoCode(db.Model):
 
     @staticmethod
     def get_geocode_id(search_str):
-        geo_code_id = GeoCode.query.with_entities(GeoCode.geo_code_id)\
-            .filter(sa.or_(GeoCode.fips_code == search_str,
-                           GeoCode.geo_name == search_str,
-                           GeoCode.geo_abreviation == search_str)).first()
-        return geo_code_id
+        geocode_id = GeoCode.query.with_entities(GeoCode.geo_code_id)\
+            .filter(sa.or_(GeoCode.fips_code == search_str.lower(),
+                           GeoCode.geo_name == search_str.lower(),
+                           GeoCode.geo_abreviation == search_str.lower())).first()
+        code = geocode_id or 0
+        return code
 
 
 class GeographicDataset(db.Model, SerializerMixin):
@@ -322,14 +323,13 @@ class GeographicAttribute(db.Model, SerializerMixin):
             row['attribute_name'] = attribute.get('attribute-name')
             row['attribute_value'] = attribute.get('attribute-value')
             row['attribute_value_type'] = 'percent'
-            row['attribute_year'] = attribute.get('atrribute-year')
+            row['attribute_year'] = attribute.get('attribute-year')
             insert_list.append(row)
             # insert_list = [{k: v for d in insert_list for k, v in d.items() if v is not None}]
         # This was the only way I could get the import to work. I think there is a problem with the csv parsing.
         for row in insert_list:
             if row['attribute_value'] is not None:
                 db.session.execute(GeographicAttribute.__table__.insert(), row)
-                db.session.commit()
 
 
 class Map(db.Model, SerializerMixin):

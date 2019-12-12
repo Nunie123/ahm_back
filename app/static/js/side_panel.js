@@ -114,7 +114,8 @@ class SidePanel {
             yearArray.forEach(function(year){
                 let btn = document.createElement('button');
                 btn.className = 'list-group-item list-group-item-action list-group-item-light';
-                btn.textContent = year;
+                btn.textContent = year || 'Unspecified Year';
+                btn.style.paddingLeft = '50px';
                 btn.dataset.sourceId = datasetId;
                 btn.dataset.attributeName = attributeName;
                 btn.addEventListener('click', this.selectAttribute.bind(this));

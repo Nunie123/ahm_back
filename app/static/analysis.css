@@ -188,6 +188,9 @@ div.row>div.attribute-remove-button{
 
 /* Modal  */
 
+#field-mapper{
+    margin-top: 50px;
+}
 .field-mapper-headers{
     font-weight: bold;
     text-align: center;
@@ -208,6 +211,22 @@ div.row>div.attribute-remove-button{
 .table-wrapper{
     overflow: scroll;
 }
+div#data-format-selector{
+    text-align: center;
+}
+.format-selector-box:hover, .format-selector-box-selected{
+    background-color: gray;
+    border: solid 1px black;
+}
+.format-selector-box{
+    padding: 225px 10px;
+    cursor: pointer;
+}
+#data-format-selector-prompt{
+    color:gray;
+    margin-bottom: 20px;
+}
+
 
 
 /* Tooltip text */
