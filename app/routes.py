@@ -198,7 +198,15 @@ def analysis():
             for row in user_datasets]
     else:
         user_datasets = []
-    favorite_datasets = []
+    if current_user.is_authenticated:
+        favorite_datasets = models.GeographicDataset.query\
+            .filter(models.GeographicDataset.geographic_dataset_id.in_(current_user.datasets_favorited)).all()
+        favorite_datasets = [
+            row.to_dict(rules=('-geographic_attributes',
+                               'distinct_geographic_attribute_names'))
+            for row in favorite_datasets]
+    else:
+        favorite_datasets = []
     return render_template('analysis.html',
                            default_dataset_list=serialized_default,
                            personal_dataset_list=user_datasets,
@@ -217,8 +225,24 @@ def get_map(map_id):
         row.to_dict(rules=('-geographic_attributes',
                            'distinct_geographic_attribute_names'))
         for row in default_datasets]
-    user_datasets = []
-    favorite_datasets = []
+    if current_user.is_authenticated:
+        user_datasets = models.GeographicDataset.query\
+            .filter_by(owner_id=current_user.user_id).all()
+        user_datasets = [
+            row.to_dict(rules=('-geographic_attributes',
+                               'distinct_geographic_attribute_names'))
+            for row in user_datasets]
+    else:
+        user_datasets = []
+    if current_user.is_authenticated:
+        favorite_datasets = models.GeographicDataset.query\
+            .filter(models.GeographicDataset.geographic_dataset_id.in_(current_user.datasets_favorited)).all()
+        favorite_datasets = [
+            row.to_dict(rules=('-geographic_attributes',
+                               'distinct_geographic_attribute_names'))
+            for row in favorite_datasets]
+    else:
+        favorite_datasets = []
     mapView = models.MapView(map_id=map_id,
                              user_id=current_user.get_id(),
                              ip_address=request.remote_addr)
@@ -388,14 +412,30 @@ def remove_favorite(map_id):
 
 @app.route('/datasets', methods=['GET'])
 def datasets():
-    attributes = models.GeographicDataset.get_list_of_all_attributes()
-    attributes = helpers.convert_to_list_of_lists(attributes, 2)
-    return render_template('datasets.html', attributes=attributes)
+    if current_user.is_authenticated:
+        user_datasets = models.GeographicDataset.get_datasets_and_attributes_by_owner(current_user.user_id)
+        for dataset in user_datasets:
+            dataset['attributes'] = helpers.convert_to_list_of_lists(dataset['attributes'], 2)
+        favorite_datasets = models.GeographicDataset.get_favorite_datasets_and_attributes(current_user)
+        for dataset in favorite_datasets:
+            dataset['attributes'] = helpers.convert_to_list_of_lists(dataset['attributes'], 2)
+    else:
+        user_datasets = []
+        favorite_datasets = []
+    popular_datasets = models.GeographicDataset.get_popular_datasets_and_attributes()
+    for dataset in popular_datasets:
+        dataset['attributes'] = helpers.convert_to_list_of_lists(dataset['attributes'], 2)
+    return render_template('datasets.html',
+                           user_datasets=user_datasets,
+                           favorite_datasets=favorite_datasets,
+                           popular_datasets=popular_datasets)
 
 
-@app.route('/datasets/<dataset_id>/<attribute_name>/<year>/delete',
-           methods=['GET'])
+@login_required
+@app.route('/datasets/<dataset_id>/<attribute_name>/<year>/delete', methods=['GET'])
 def delete_attribute(dataset_id, attribute_name, year):
+    if not current_user.is_admin:
+        return jsonify(success=False, msg='Only admin users can delete attributes.')
     attributes = models.GeographicAttribute.query\
         .filter_by(dataset_id=dataset_id,
                    attribute_name=attribute_name,
@@ -404,6 +444,46 @@ def delete_attribute(dataset_id, attribute_name, year):
         attribute.deleted_at = datetime.now()
     db.session.commit()
     return jsonify(success=True)
+
+
+@login_required
+@app.route('/datasets/<dataset_id>/remove_owner', methods=['GET'])
+def remove_dataset_owner(dataset_id):
+    dataset = models.GeographicDataset.query.get(dataset_id)
+    if current_user.user_id == dataset.owner_id or current_user.is_admin:
+        dataset.owner_id = None
+        db.session.commit()
+        return jsonify(success=True)
+    else:
+        return jsonify(success=False, msg='Current user does not have permission to remove owner of this dataset.')
+
+
+@login_required
+@app.route('/datasets/<dataset_id>/add_favorite', methods=['GET'])
+def add_dataset_favortie(dataset_id):
+    duplicate_fav = models.GeographicDatasetFavorite.query\
+        .filter_by(geographic_dataset_id=dataset_id, user_id=current_user.user_id).first()
+    if duplicate_fav:
+        msg = "This dataset is already a favorite."
+        return jsonify(success=False, msg=msg)
+    try:
+        fav = models.GeographicDatasetFavorite(geographic_dataset_id=dataset_id, user_id=current_user.user_id)
+        db.session.add(fav)
+        db.session.commit()
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, msg=e)
+
+
+@login_required
+@app.route('/datasets/<dataset_id>/remove_favorite', methods=['GET'])
+def remove_dataset_favorite(dataset_id):
+    try:
+        models.GeographicDatasetFavorite.query.filter_by(geographic_dataset_id=dataset_id, user_id=current_user.user_id).delete()
+        db.session.commit()
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, msg=e)
 
 
 @app.route('/settings', methods=['GET', 'POST'])

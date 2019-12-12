@@ -20,10 +20,33 @@ async function deleteAttribute(e){
     }
 }
 
-async function addFavorite(e){
+async function deleteDataset(e){
     const node = e.target;
-    const mapId = node.dataset.mapId;
-    const url = `${SCRIPT_ROOT}maps/${mapId}/add_favorite`;
+    const datasetId = node.dataset.sourceId;
+    const url = `${SCRIPT_ROOT}datasets/${datasetId}/remove_owner`;
+    const response = await fetch(url);
+    const json = await response.json();
+    if(json.success == true){
+        window.location.reload(true);
+    } else {
+        console.log(json.msg);
+    }
+}
+
+async function toggleFavorite(e){
+    const node = e.target.closest('.favorite-data-button');
+    const datasetId = node.dataset.sourceId;
+    const signNode = node.childNodes[1];
+    let url;
+    if(node.dataset.fav == 'yes'){
+        node.dataset.fav = 'no';
+        signNode.nodeValue = '+';
+        url = `${SCRIPT_ROOT}datasets/${datasetId}/remove_favorite`;
+    } else {
+        node.dataset.fav = 'yes';
+        signNode.nodeValue = '-';
+        url = `${SCRIPT_ROOT}datasets/${datasetId}/add_favorite`;
+    }
     const response = await fetch(url);
     const json = await response.json();
     if(json.success != true){
@@ -31,14 +54,36 @@ async function addFavorite(e){
     } 
 }
 
+function toggleAttributes(e){
+    console.log('clicked!')
+    const node = e.target.closest('.show-attributes-btn');
+    console.log(node)
+    console.log(node.getAttribute('aria-expanded'))
+    if(node.getAttribute('aria-expanded') == 'true'){
+        node.innerHTML = '<i class="fas fa-chevron-down"></i> Show Attributes <i class="fas fa-chevron-down"></i>';
+    } else {
+        node.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Attributes <i class="fas fa-chevron-up"></i>';
+    }
+}
+
 function addDatasetsEventListeners(){
-    var deleteButtons = document.getElementsByClassName("delete-attribute-button");
-    Array.from(deleteButtons).forEach(function(element) {
+    let deleteAttributesButtons = document.getElementsByClassName("delete-attribute-button");
+    Array.from(deleteAttributesButtons).forEach(function(element) {
         element.addEventListener('click', deleteAttribute);
     });
 
-    var favoriteButtons = document.getElementsByClassName("favorite-data-button");
+    let deleteDatasetButtons = document.getElementsByClassName("delete-dataset-button");
+    Array.from(deleteDatasetButtons).forEach(function(element) {
+        element.addEventListener('click', deleteDataset);
+    });
+
+    let favoriteButtons = document.getElementsByClassName("favorite-data-button");
     Array.from(favoriteButtons).forEach(function(element) {
-        element.addEventListener('click', addFavorite);
+        element.addEventListener('click', toggleFavorite);
+    });
+
+    let toggleAttributesButton = document.getElementsByClassName("show-attributes-btn");
+    Array.from(toggleAttributesButton).forEach(function(element) {
+        element.addEventListener('click', toggleAttributes);
     });
 }

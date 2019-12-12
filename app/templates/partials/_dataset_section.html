@@ -1,0 +1,62 @@
+<div class="dataset-record">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="dataset-title">{{ dataset['source_name'] }}</div>
+            </div>
+            <div class="col-sm-6">
+                <div><label>organization: </label> {{ dataset['source_organization'] }}</div>
+                <div><label>website: </label> <a href="{{ dataset['source_url'] }}">{{ dataset['source_url'] }}</a></a></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div><label>description:</label></div>
+                <div>{{ dataset['source_description'] }}</div>
+            </div>
+        </div>
+        <div class="row dataset-btn-row">
+            <div class="col-sm-10">
+                <a class=" show-attributes-btn" 
+                    data-toggle="collapse" 
+                    href="#{{ collapse_id }}" 
+                    role="button" 
+                    aria-expanded="false" 
+                    aria-controls="{{ collapse_id }}">
+                    <i class="fas fa-chevron-down"></i> Show Attributes <i class="fas fa-chevron-down"></i>
+                </a>
+            </div>
+            <div class="col-sm-2">
+                {% if current_user.is_authenticated %}
+                {% if dataset['source_id'] in current_user.datasets_favorited %}
+                <a href="javascript:;" class="btn btn-primary favorite-data-button" data-source-id="{{ dataset['source_id'] }}" data-fav="yes"><i class="fas fa-heart"></i>-</a>
+                {% else %}
+                <a href="javascript:;" class="btn btn-primary favorite-data-button" data-source-id="{{ dataset['source_id']}}" data-fav="no"><i class="fas fa-heart"></i>+</a>
+                {% endif %}
+                {% endif %}
+                {% if dataset['source_id'] in current_user.datasets_owned or current_user.is_admin %}
+                <div class="btn-group">
+                    <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Delete
+                    </button>
+                    <div class="dropdown-menu">
+                        <h6 class="dropdown-header">Are you sure?</h6>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item delete-dataset-button" href="javascript:;" data-source-id="{{ dataset['source_id'] }}">
+                            Delete
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="collapse" id="{{ collapse_id }}">
+            {% for row in dataset['attributes'] %}
+            <div class="row dataset-card-row">
+                {% for attribute in row %}
+                {% include "partials/_dataset_card.html" %}
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>

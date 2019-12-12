@@ -39,6 +39,18 @@ class User(UserMixin, db.Model):
         map_list = [map.map_id for map in maps]
         return map_list
 
+    @property
+    def datasets_owned(self):
+        datasets = GeographicDataset.query.filter_by(owner_id=self.user_id).all()
+        dataset_list = [dataset.geographic_dataset_id for dataset in datasets]
+        return dataset_list
+
+    @property
+    def datasets_favorited(self):
+        datasets = GeographicDatasetFavorite.query.filter_by(user_id=self.user_id).all()
+        dataset_list = [dataset.geographic_dataset_id for dataset in datasets]
+        return dataset_list
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -134,6 +146,7 @@ class GeographicDataset(db.Model, SerializerMixin):
     url = db.Column(db.Text)
     display_by_default = db.Column(db.Boolean, server_default=sa.false())
     is_public = db.Column(db.Boolean, server_default=sa.true())
+    favorites = db.relationship('GeographicDatasetFavorite', backref='dataset')
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     geographic_attributes = db.relationship('GeographicAttribute',
                                             backref='geographic_dataset',
@@ -149,6 +162,17 @@ class GeographicDataset(db.Model, SerializerMixin):
         self.organization = dataset['organization']
         self.url = dataset['url']
         self.is_public = dataset['is_public']
+
+    @hybrid_property
+    def favorite_count(self):
+        if self.favorites:
+            return len(self.favorites)
+        return 0
+
+    @favorite_count.expression
+    def favorite_count(cls):
+        return sa.select([sa.func.count(GeographicDatasetFavorite.geographic_dataset_favorite_id)])\
+            .where(GeographicDatasetFavorite.geographic_dataset_id == cls.geographic_dataset_id)
 
     @property
     def geographic_attributes_dict(self):
@@ -197,6 +221,51 @@ class GeographicDataset(db.Model, SerializerMixin):
 # item['geo_level'] = self.geographic_attributes[0].geo_code.geographic_level
             attribute_list.append(item)
         return attribute_list
+
+    @classmethod
+    def get_datasets_and_attributes_by_owner(cls, user_id):
+        dataset_list = []
+        datasets = cls.query.filter_by(owner_id=user_id).all()
+        for dataset in datasets:
+            item = {}
+            item['attributes'] = dataset.get_list_of_attributes()
+            item['source_id'] = dataset.geographic_dataset_id
+            item['source_name'] = dataset.name
+            item['source_description'] = dataset.description
+            item['source_organization'] = dataset.organization
+            item['source_url'] = dataset.url
+            dataset_list.append(item)
+        return dataset_list
+
+    @classmethod
+    def get_favorite_datasets_and_attributes(cls, current_user):
+        dataset_list = []
+        datasets = cls.query.filter(cls.geographic_dataset_id.in_(current_user.datasets_favorited)).all()
+        for dataset in datasets:
+            item = {}
+            item['attributes'] = dataset.get_list_of_attributes()
+            item['source_id'] = dataset.geographic_dataset_id
+            item['source_name'] = dataset.name
+            item['source_description'] = dataset.description
+            item['source_organization'] = dataset.organization
+            item['source_url'] = dataset.url
+            dataset_list.append(item)
+        return dataset_list
+
+    @classmethod
+    def get_popular_datasets_and_attributes(cls):
+        dataset_list = []
+        datasets = cls.query.order_by(sa.desc(cls.favorite_count)).limit(5).all()
+        for dataset in datasets:
+            item = {}
+            item['attributes'] = dataset.get_list_of_attributes()
+            item['source_id'] = dataset.geographic_dataset_id
+            item['source_name'] = dataset.name
+            item['source_description'] = dataset.description
+            item['source_organization'] = dataset.organization
+            item['source_url'] = dataset.url
+            dataset_list.append(item)
+        return dataset_list
 
     @classmethod
     def get_list_of_all_attributes(cls):
@@ -387,7 +456,9 @@ class MapFavorite(db.Model):
 class GeographicDatasetFavorite(db.Model):
     __tablename__ = 'geographic_dataset_favorites'
     geographic_dataset_favorite_id = db.Column(db.Integer, primary_key=True)
-    geographic_dataset_id = db.Column(db.Integer, db.ForeignKey('maps.map_id'), nullable=False)
+    geographic_dataset_id = db.Column(db.Integer,
+                                      db.ForeignKey('geographic_datasets.geographic_dataset_id'),
+                                      nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     created_at = db.Column(db.DateTime, server_default=sa.func.now())
     updated_at = db.Column(db.DateTime, server_default=sa.func.now())

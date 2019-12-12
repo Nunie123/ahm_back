@@ -26,12 +26,7 @@
     overflow-y: scroll;
 }
 
-.dataset-card-row .card-content {
-    height: 280px;
-    overflow-y: scroll;
-}
-
-.card-content label{
+label{
     font-size: 0.8em;
     color: gray;
 }
@@ -45,7 +40,6 @@
     margin-top: -25px;
 }
 
-
 .thumbnail {
     position: relative;
     float: left;
@@ -53,4 +47,49 @@
     background-position: 50% 50%;
     background-repeat:   no-repeat;
     background-size:     cover;
+}
+
+/* Datasets PAGE ---------------- */
+.dataset-record{
+    border: 1px gray solid;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+.dataset-title{
+    font-size: 1.7em;
+}
+.show-attributes-btn{
+    color: black;
+}
+.dataset-btn-row{
+    border-top: 1px gray solid;
+    border-bottom: 1px gray solid;
+    text-align: center;
+    margin-bottom: -15px;
+    margin-right: -16px;
+}
+.dataset-btn-row>div.col-sm-10{
+    padding-top: 7px;
+}
+.dataset-btn-row>div.col-sm-2{
+    text-align: right;
+    padding-right: 0px;
+}
+.dataset-group{
+    background-color: #EEEEEE;
+    padding: 3px;
+    border-radius: 5px;
+}
+.collapse{
+    margin-top: 20px;
+}
+.dataset-card-row .card-content {
+    height: 200px;
+    overflow-y: scroll;
+}
+.dataset-section-title {
+    color: #480062;
+    margin-top: 50px;
 }

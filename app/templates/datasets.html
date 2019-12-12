@@ -9,61 +9,33 @@
 
 <main>
     <div class="container">
-        {% if current_user.is_authenticated %}
-        <div class="map-card-section">
-            <div class="row" id="user-maps-title">
-                <div class="col-sm-12"><h3>Datasets</h3></div>
-            </div>
-            {% for row in attributes %}
-            <div class="row dataset-card-row">
-                {% for attribute in row %}
-                <div class="col-sm-6">
-                    <div class="card">
-                        <div class="card-body card-content">
-                            <h5 class="card-title">{{ attribute.attribute_name }}</h5>
-                            <h6 class="card-subtitle">{{ attribute.source }}</h6>
-                            <p class="card-text">
-                                <label>source:</label> {{ attribute.source_name }} <br>
-                                <label>year:</label> {{ attribute.attribute_year }} <br>
-                                <label># of regions with data:</label> {{ attribute.attribute_count }} <br>
-                                <label>url:</label> <a href="{{ attribute.source_url }}">{{ attribute.source_url }}</a> <br>
-                                <label>organization:</label> {{ attribute.source_organization }} <br>
-                                <label>description:</label> {{ attribute.source_description }} <br>
-                            </p>
-                        </div>
-                        <div class="card-body">
-                            <a href="javascript:;" 
-                                class="btn btn-primary favorite-data-button" 
-                                data-attribute-name="{{ attribute.attribute_name }}"
-                                data-source-id="{{ attribute.source_id }}"
-                                data-year="{{ attribute.attribute_year }}">
-                                <i class="fas fa-heart"></i>+
-                            </a>
-                            {% if current_user.is_admin %}
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Delete
-                                </button>
-                                <div class="dropdown-menu">
-                                    <h6 class="dropdown-header">Are you sure?</h6>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item delete-attribute-button" href="javascript:;" 
-                                        data-attribute-name="{{ attribute.attribute_name }}"
-                                        data-source-id="{{ attribute.source_id }}"
-                                        data-year="{{ attribute.attribute_year }}">
-                                        Delete
-                                    </a>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+        <div class="row">
+            <div class="col-sm-12 dataset-section-title"><h4>Your Datasets</h4></div>
+        </div>
+        <div class="dataset-group">
+            {% for dataset in user_datasets %}
+                {% set collapse_id = 'user_collapse_{}'.format(dataset['source_id']) %}
+                {% include "partials/_dataset_section.html" %}
             {% endfor %}
         </div>
-        {% endif %}
+        <div class="row">
+            <div class="col-sm-12 dataset-section-title"><h4>Favorite Datasets</h4></div>
+        </div>
+        <div class="dataset-group">
+            {% for dataset in favorite_datasets %}
+                {% set collapse_id = 'favorite_collapse_{}'.format(dataset['source_id']) %}
+                {% include "partials/_dataset_section.html" %}
+            {% endfor %}
+        </div>
+        <div class="row">
+            <div class="col-sm-12 dataset-section-title"><h4>Popular Datasets</h4></div>
+        </div>
+        <div class="dataset-group">
+            {% for dataset in popular_datasets %}
+                {% set collapse_id = 'popular_collapse_{}'.format(dataset['source_id']) %}
+                {% include "partials/_dataset_section.html" %}
+            {% endfor %}
+        </div>
     </div>
 </main>
 

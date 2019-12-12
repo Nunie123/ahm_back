@@ -1,0 +1,32 @@
+<div class="col-sm-6">
+    <div class="card">
+        <div class="card-body card-content">
+            <h5 class="card-title">{{ attribute.attribute_name }}</h5>
+            <h6 class="card-subtitle">{{ attribute.source }}</h6>
+            <p class="card-text">
+                <label>source:</label> {{ attribute.source_name }} <br>
+                <label>year:</label> {{ attribute.attribute_year }} <br>
+                <label># of regions with data:</label> {{ attribute.attribute_count }} <br>
+            </p>
+        </div>
+        <div class="card-body">
+            {% if current_user.is_admin %}
+            <div class="btn-group">
+                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Delete
+                </button>
+                <div class="dropdown-menu">
+                    <h6 class="dropdown-header">Are you sure?</h6>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item delete-attribute-button" href="javascript:;" 
+                        data-attribute-name="{{ attribute.attribute_name }}"
+                        data-source-id="{{ attribute.source_id }}"
+                        data-year="{{ attribute.attribute_year }}">
+                        Delete
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
