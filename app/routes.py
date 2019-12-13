@@ -344,7 +344,9 @@ def maps():
             map['s3_link'] = user_map_link
         user_maps = helpers.convert_to_list_of_lists(user_maps, 3)
 
-    community_maps = models.Map.get_most_viewed_maps()
+    if not current_user.is_authenticated:
+        user_id = None
+    community_maps = models.Map.get_community_maps(user_id)
     community_maps = [map.get_map_card_data() for map in community_maps]
     for map in community_maps:
         community_map_link = file_handler.generate_image_path(map)
