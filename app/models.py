@@ -128,13 +128,12 @@ class GeoCode(db.Model):
                                             lazy='dynamic')
 
     @staticmethod
-    def get_geocode_id(search_str):
-        geocode_id = GeoCode.query.with_entities(GeoCode.geo_code_id)\
+    def get_geocode(search_str):
+        geocode = GeoCode.query\
             .filter(sa.or_(GeoCode.fips_code == search_str.lower(),
                            GeoCode.geo_name == search_str.lower(),
                            GeoCode.geo_abreviation == search_str.lower())).first()
-        code = geocode_id or 0
-        return code
+        return geocode
 
 
 class GeographicDataset(db.Model, SerializerMixin):
@@ -191,6 +190,11 @@ class GeographicDataset(db.Model, SerializerMixin):
             [{'name': name, 'dataset_id': self.geographic_dataset_id}
              for name in distinct_name_list]
         return distinct_attribute_list
+
+    @property
+    def geo_level(self):
+        geo_level = self.geographic_attributes[0].geo_code.geographic_level
+        return geo_level
 
     def get_distinct_attributes(self):
         attributes = GeographicAttribute.query \
@@ -276,6 +280,65 @@ class GeographicDataset(db.Model, SerializerMixin):
             attribute_list += these_attributes
         return attribute_list
 
+    @classmethod
+    def get_default_datasets(cls):
+        defaults = []
+        geo_levels = [('State Datasets', 'state'), ('County Datasets', 'county')]
+        default_datasets = cls.query.filter_by(display_by_default=True).all()
+        print('start loop', datetime.datetime.now())
+        for name, search_term in geo_levels:
+            region_defaults = dict(name=name, level=search_term)
+            region_defaults['datasets'] = []
+            for sa_dataset in default_datasets:
+                if sa_dataset.geo_level == search_term:
+                    dataset = dict(
+                        dataset_id=sa_dataset.geographic_dataset_id,
+                        name=sa_dataset.name,
+                        distinct_geographic_attribute_names=sa_dataset.distinct_geographic_attribute_names
+                    )
+                    region_defaults['datasets'].append(dataset)
+            defaults.append(region_defaults)
+        print('end', datetime.datetime.now())
+        return defaults
+
+    @classmethod
+    def get_personal_datasets(cls, user_id):
+        personals = []
+        geo_levels = [('State Datasets', 'state'), ('County Datasets', 'county')]
+        personal_datasets = cls.query.filter_by(owner_id=user_id).all()
+        for name, search_term in geo_levels:
+            region_personals = dict(name=name, level=search_term)
+            region_personals['datasets'] = []
+            for sa_dataset in personal_datasets:
+                if sa_dataset.geo_level == search_term:
+                    dataset = dict(
+                        dataset_id=sa_dataset.geographic_dataset_id,
+                        name=sa_dataset.name,
+                        distinct_geographic_attribute_names=sa_dataset.distinct_geographic_attribute_names
+                    )
+                    region_personals['datasets'].append(dataset)
+            personals.append(region_personals)
+        return personals
+
+    @classmethod
+    def get_favorite_datasets(cls, favorites_list):
+        favorites = []
+        geo_levels = [('State Datasets', 'state'), ('County Datasets', 'county')]
+        favorite_datasets = cls.query.filter(cls.geographic_dataset_id.in_(favorites_list)).all()
+        for name, search_term in geo_levels:
+            region_favorites = dict(name=name, level=search_term)
+            region_favorites['datasets'] = []
+            for sa_dataset in favorite_datasets:
+                if sa_dataset.geo_level == search_term:
+                    dataset = dict(
+                        dataset_id=sa_dataset.geographic_dataset_id,
+                        name=sa_dataset.name,
+                        distinct_geographic_attribute_names=sa_dataset.distinct_geographic_attribute_names
+                    )
+                    region_favorites['datasets'].append(dataset)
+            favorites.append(region_favorites)
+        return favorites
+
 
 class GeographicAttribute(db.Model, SerializerMixin):
     __tablename__ = 'geographic_attributes'
@@ -292,6 +355,7 @@ class GeographicAttribute(db.Model, SerializerMixin):
                                      server_default='percent')
     attribute_year = db.Column(db.SmallInteger)
     attribute_relative_weight = db.Column(sa.Enum('high', 'medium', 'low', name='relative_weights', create_type=True))
+    fips_code = db.Column(db.Text)
     deleted_at = db.Column(db.DateTime)
     __table_args__ = (db.UniqueConstraint('geo_code_id',
                                           'attribute_name',
@@ -302,6 +366,15 @@ class GeographicAttribute(db.Model, SerializerMixin):
     @property
     def geo_name(self):
         return self.geo_code.geo_name
+
+    def to_dict(self):
+        attribute_dict = dict()
+        attribute_dict['attribute_name'] = self.attribute_name
+        attribute_dict['attribute_value'] = self.attribute_value
+        attribute_dict['fips_code'] = self.fips_code
+        attribute_dict['dataset_id'] = self.dataset_id
+        attribute_dict['attribute_year'] = self.attribute_year
+        return attribute_dict
 
     @classmethod
     def get_attribute_years(cls, dataset_id, attribute_name):
@@ -317,8 +390,10 @@ class GeographicAttribute(db.Model, SerializerMixin):
     def bulk_insert(attributes, dataset_id):
         insert_list = []
         for attribute in attributes:
+            geocode = GeoCode.get_geocode(attribute.get('geographic-label'))
             row = {}
-            row['geo_code_id'] = GeoCode.get_geocode_id(attribute.get('geographic-label'))
+            row['geo_code_id'] = geocode.geo_code_id if geocode else 0
+            row['fips_code'] = geocode.fips_code if geocode else None
             row['dataset_id'] = dataset_id
             row['attribute_name'] = attribute.get('attribute-name')
             row['attribute_value'] = attribute.get('attribute-value')
@@ -328,7 +403,7 @@ class GeographicAttribute(db.Model, SerializerMixin):
             # insert_list = [{k: v for d in insert_list for k, v in d.items() if v is not None}]
         # This was the only way I could get the import to work. I think there is a problem with the csv parsing.
         for row in insert_list:
-            if row['attribute_value'] is not None:
+            if row['attribute_value'] is not None and row['geo_code_id'] != 0:
                 db.session.execute(GeographicAttribute.__table__.insert(), row)
 
 
@@ -358,6 +433,11 @@ class Map(db.Model, SerializerMixin):
     primary_dataset = db.relationship("GeographicDataset", foreign_keys=[primary_dataset_id])
     secondary_dataset = db.relationship("GeographicDataset", foreign_keys=[secondary_dataset_id])
     __table_args__ = (db.UniqueConstraint('title', 'owner_id', name='_title_owner_uc'),)
+
+    @property
+    def geo_level(self):
+        level = self.primary_dataset.geo_level
+        return level
 
     @hybrid_property
     def view_count(self):
@@ -392,6 +472,21 @@ class Map(db.Model, SerializerMixin):
             else:
                 self.title += f'({counter})'
             self.save(counter)
+
+    def get_preloaded_data(self):
+        data = {}
+        data['map_id'] = self.map_id
+        data['title'] = self.title
+        data['zoom_level'] = self.zoom_level
+        data['center_coordinates'] = self.center_coordinates
+        data['attribute_name_1'] = self.attribute_name_1
+        data['attribute_year_1'] = self.attribute_year_1
+        data['primary_dataset_id'] = self.primary_dataset_id
+        data['attribute_name_2'] = self.attribute_name_1
+        data['attribute_year_2'] = self.attribute_year_1
+        data['secondary_dataset_id'] = self.secondary_dataset_id
+        data['geo_level'] = self.geo_level
+        return data
 
     def get_map_card_data(self):
         data = {}

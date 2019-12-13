@@ -1,5 +1,5 @@
 import { updateLegend } from './legend.js';
-import { deleteChildren } from './helpers.js';
+import { deleteChildren, deleteChildrenById } from './helpers.js';
 
 const URLSearchParams = window.URLSearchParams;  //JSHint doesn't recognize this global object
 var URL_ROOT = window.SCRIPT_ROOT;  //imported from analysis.html
@@ -12,13 +12,19 @@ class SidePanel {
         this.toggleYearList = this.toggleYearList.bind(this);
         this.tableView = null;
         this.statisticsView = null;
-
+        this.geoLevel = null;
     }
 
     async selectAttribute(e){
-        if(this.selectedAttributes.length >= 2){return;}
         let attribute = {};
         let node = e.target;
+        let geoLevel = node.parentNode.dataset.geoLevel;
+        if(this.geoLevel != geoLevel){
+            this.geoLevel = geoLevel;
+            this.selectedAttributes = [];
+            deleteChildrenById('selected-attributes');
+        }
+        if(this.selectedAttributes.length >= 2){return;}
         attribute.datasetId = node.dataset.sourceId;
         attribute.attributeName = node.dataset.attributeName;
         attribute.attributeYear = node.textContent.trim();
@@ -38,7 +44,7 @@ class SidePanel {
     }
 
     async getAttributeData(attribute){
-        let url_string = URL_ROOT + 'get-data-attribute';
+        let url_string = URL_ROOT + 'analysis/get-data-attribute';
         let url = new URL(url_string);
         let params = {datasetId: attribute.datasetId, attributeName: attribute.attributeName, attributeYear: attribute.attributeYear};
         url.search = new URLSearchParams(params);
@@ -86,17 +92,26 @@ class SidePanel {
         this.statisticsView.renderStatisticsView();
     }
 
-    toggleAttributes(e){
-        let button = e.target.closest('.dataset-btn');
+    toggleSources(e){
+        let button = e.target.closest('.source-btn');
         let list = button.nextSibling.nextSibling;
         list.style.display = (list.style.display === 'none') ? 'block' : 'none';
         let icon = button.children[0];
         icon.classList.toggle('fa-plus-square');
         icon.classList.toggle('fa-minus-square');
     }
-    
-    toggleSources(e){
-        let button = e.target.closest('.source-btn');
+
+    toggleRegions(e){
+        let button = e.target.closest('.region-dataset-btn');
+        let list = button.nextSibling.nextSibling;
+        list.style.display = (list.style.display === 'none') ? 'block' : 'none';
+        let icon = button.children[0];
+        icon.classList.toggle('fa-plus-square');
+        icon.classList.toggle('fa-minus-square');
+    }
+
+    toggleAttributes(e){
+        let button = e.target.closest('.dataset-btn');
         let list = button.nextSibling.nextSibling;
         list.style.display = (list.style.display === 'none') ? 'block' : 'none';
         let icon = button.children[0];
@@ -126,7 +141,7 @@ class SidePanel {
         if(yearList.childNodes.length > 0){
             deleteChildren(yearList);
         } else {
-            const url_string = URL_ROOT + 'get-attribute-years';
+            const url_string = URL_ROOT + 'analysis/get-attribute-years';
             let url = new URL(url_string);
             const params = {datasetId: datasetId, attributeName: attributeName};
             url.search = new URLSearchParams(params);

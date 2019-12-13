@@ -1,6 +1,9 @@
 from datetime import datetime
+
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
+import simplejson as json
+
 from app import app, db, models, file_handler
 from app.forms import (RegistrationForm, LoginForm, PasswordForm, EmailForm,
                        SupportForm)
@@ -182,32 +185,21 @@ def register_admin():
 
 @app.route('/analysis', methods=['GET', 'POST'])
 def analysis():
-    default_datasets = models.GeographicDataset.query\
-        .filter_by(display_by_default=True).all()
-    serialized_default = [
-        row.to_dict(rules=('-geographic_attributes',
-                           'distinct_geographic_attribute_names'))
-        for row in default_datasets]
+    print('start default', datetime.now())
+    default_datasets = models.GeographicDataset.get_default_datasets()
+    print('start personal', datetime.now())
     if current_user.is_authenticated:
-        user_datasets = models.GeographicDataset.query\
-            .filter_by(owner_id=current_user.user_id).all()
-        user_datasets = [
-            row.to_dict(rules=('-geographic_attributes',
-                               'distinct_geographic_attribute_names'))
-            for row in user_datasets]
+        user_datasets = models.GeographicDataset.get_personal_datasets(current_user.user_id)
     else:
         user_datasets = []
+    print('start favorite', datetime.now())
     if current_user.is_authenticated:
-        favorite_datasets = models.GeographicDataset.query\
-            .filter(models.GeographicDataset.geographic_dataset_id.in_(current_user.datasets_favorited)).all()
-        favorite_datasets = [
-            row.to_dict(rules=('-geographic_attributes',
-                               'distinct_geographic_attribute_names'))
-            for row in favorite_datasets]
+        favorite_datasets = models.GeographicDataset.get_favorite_datasets(current_user.datasets_favorited)
     else:
         favorite_datasets = []
+    print('finish', datetime.now())
     return render_template('analysis.html',
-                           default_dataset_list=serialized_default,
+                           default_dataset_list=default_datasets,
                            personal_dataset_list=user_datasets,
                            favorite_dataset_list=favorite_datasets,
                            preloaded_map=None)
@@ -216,39 +208,26 @@ def analysis():
 @app.route('/analysis/<map_id>', methods=['GET'])
 def get_map(map_id):
     user_map = models.Map.query.get(map_id)
-    map_dict = user_map.to_dict(rules=('-primary_dataset',
-                                       '-secondary_dataset'))
-    default_datasets = models.GeographicDataset.query\
-        .filter_by(display_by_default=True).all()
-    serialized_default = [
-        row.to_dict(rules=('-geographic_attributes',
-                           'distinct_geographic_attribute_names'))
-        for row in default_datasets]
+    # map_dict = user_map.to_dict(rules=('-primary_dataset',
+    #                                    '-secondary_dataset'))
+    map_dict = user_map.get_preloaded_data()
+
+    default_datasets = models.GeographicDataset.get_default_datasets()
     if current_user.is_authenticated:
-        user_datasets = models.GeographicDataset.query\
-            .filter_by(owner_id=current_user.user_id).all()
-        user_datasets = [
-            row.to_dict(rules=('-geographic_attributes',
-                               'distinct_geographic_attribute_names'))
-            for row in user_datasets]
+        user_datasets = models.GeographicDataset.get_personal_datasets(current_user.user_id)
     else:
         user_datasets = []
     if current_user.is_authenticated:
-        favorite_datasets = models.GeographicDataset.query\
-            .filter(models.GeographicDataset.geographic_dataset_id.in_(current_user.datasets_favorited)).all()
-        favorite_datasets = [
-            row.to_dict(rules=('-geographic_attributes',
-                               'distinct_geographic_attribute_names'))
-            for row in favorite_datasets]
+        favorite_datasets = models.GeographicDataset.get_favorite_datasets(current_user.datasets_favorited)
     else:
         favorite_datasets = []
-    mapView = models.MapView(map_id=map_id,
-                             user_id=current_user.get_id(),
-                             ip_address=request.remote_addr)
+
+    mapView = models.MapView(map_id=map_id, user_id=current_user.get_id(), ip_address=request.remote_addr)
     db.session.add(mapView)
     db.session.commit()
+
     return render_template('analysis.html',
-                           default_dataset_list=serialized_default,
+                           default_dataset_list=default_datasets,
                            user_dataset_list=user_datasets,
                            favorite_dataset_list=favorite_datasets,
                            preloaded_map=map_dict)
@@ -297,7 +276,7 @@ def save_thumbnail(map_id):
     return jsonify(success=True)
 
 
-@app.route('/get-attribute-years', methods=['GET'])
+@app.route('/analysis/get-attribute-years', methods=['GET'])
 def get_attribute_year():
     dataset_id = request.args.get('datasetId')
     attribute_name = request.args.get('attributeName')
@@ -305,7 +284,7 @@ def get_attribute_year():
     return jsonify(distinct_year_list)
 
 
-@app.route('/get-data-attribute', methods=['GET'])
+@app.route('/analysis/get-data-attribute', methods=['GET'])
 def get_data_attribute():
     dataset_id = request.args.get('datasetId')
     attribute_name = request.args.get('attributeName')
@@ -315,15 +294,13 @@ def get_data_attribute():
     attribute_list = models.GeographicAttribute.query\
         .filter_by(dataset_id=dataset_id,
                    attribute_name=attribute_name,
-                   attribute_year=attribute_year)
-    serialized_list = [
-        row.to_dict(rules=('-geographic_dataset', '-geo_code', 'geo_name'))
-        for row in attribute_list]
-    return jsonify(serialized_list)
+                   attribute_year=attribute_year).all()
+    serialized_list = [attribute.to_dict() for attribute in attribute_list]
+    return json.dumps(serialized_list)
 
 
 @login_required
-@app.route('/save-dataset', methods=['POST'])
+@app.route('/datasets/save', methods=['POST'])
 def save_dataset():
     data = request.get_json()
     dataset_dict = data['metadata']
