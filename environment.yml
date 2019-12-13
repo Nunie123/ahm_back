@@ -15,4 +15,5 @@ dependencies:
     - python-dateutil<2.8.1
     - botocore==1.13.37
     - boto3==1.10.29
+    - simplejson==3.17.0
 

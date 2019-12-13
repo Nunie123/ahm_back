@@ -3,11 +3,11 @@ import { Choropleth, loadMap } from './map.js';
 import { SidePanel } from './side_panel.js';
 import { TableView } from './table_view.js';
 import { StatisticsView } from './statistics_view.js';
-import { STATE_GEO_JSON } from './us_state_geojson.js';
+
 
 // Choropleth- -----------------------------------------------
 var usStateGeoJson = usStateGeoJson;  // loaded from static file in analysis.html
-var choropleth = new Choropleth(STATE_GEO_JSON);
+var choropleth = new Choropleth();
 // choropleth.infoLayer = addInfoBoxToMap(choropleth.map);
 document.getElementById('map-view-button').addEventListener('click', choropleth.showMapView);
 addUploadEventListener();
@@ -31,6 +31,11 @@ document.getElementById('side-panel-toggle').addEventListener('click', sidePanel
 var sourceButtons = document.getElementsByClassName("source-btn");
 Array.from(sourceButtons).forEach(function(element) {
     element.addEventListener('click', sidePanel.toggleSources);
+});
+
+var regionButtons = document.getElementsByClassName("region-dataset-btn");
+Array.from(regionButtons).forEach(function(element) {
+    element.addEventListener('click', sidePanel.toggleRegions);
 });
 
 var datasetButtons = document.getElementsByClassName("dataset-btn");

@@ -75,8 +75,16 @@ main, .outer-container, #data-content, #data-view {
     transition-property: left;
     transition-duration: 0.5s;
 }
-button.dataset-btn{
+button.source-btn{
+    background-color: #e6dfe8;
+}
+button.region-dataset-btn{
     padding-left: 35px;
+    background-color: #f3ebf5;
+}
+button.dataset-btn{
+    padding-left: 70px;
+    background-color: #f3ebf5;
 }
 div.row>div.attribute-remove-button{
     cursor: pointer;
@@ -116,6 +124,7 @@ div.row>div.attribute-remove-button{
 #attribute-options button.year-button, #attribute-options div.attribute-years>button{
     background-color: #fbfbfb96;
 }
+
 
 /* INFO BOX */
 .info {

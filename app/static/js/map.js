@@ -1,5 +1,7 @@
 import { TableView } from './table_view.js';
 import { hideById, showById, postData } from './helpers.js';
+import { STATE_GEO_JSON } from './us_state_geojson.js';
+import { COUNTY_GEO_JSON } from './us_counties_geojson.js';
 
 const L = window.L;  
 const URL_ROOT = window.SCRIPT_ROOT;  
@@ -7,7 +9,7 @@ const URL_ROOT = window.SCRIPT_ROOT;
 
 // Map -----------------------------------------------------------------------------
 class Choropleth {
-    constructor(geoJson, colors= {
+    constructor(colors= {
         highHigh: '#9C29C1', //dark purple
         highMedium: '#4E44C9',  //dark blue-purple
         highLow: '#1F9FFC',  //blue
@@ -18,7 +20,8 @@ class Choropleth {
         lowMedium: '#E094C1',   //light red-purple
         lowLow: '#F3E4F7'    //light purple
     }){
-        this.geoJson = geoJson;
+        this.geoJson = null;
+        this.geoLevel = null;
         this.colors = colors;
         this.choroplethProperties = [];
         this.legend = null;
@@ -130,8 +133,11 @@ class Choropleth {
 
     addPropertyToGeoJson(propertyJson){
         var propertyValueArray = propertyJson.map( propertyObj => parseFloat(propertyObj.attribute_value));
+        if(!this.geoJson){
+            this.addGeoJson();
+        }
         this.geoJson.features.forEach(function(geoEl){
-            let propertyEl = propertyJson.filter(property => property.geo_name.toLowerCase() == geoEl.properties.NAME.toLowerCase());
+            let propertyEl = propertyJson.filter(property => property.fips_code == geoEl.properties['FIPS CODE']);
     
             if(propertyEl.length > 0){
                 let propertyName = propertyEl[0].attribute_name;
@@ -165,6 +171,12 @@ class Choropleth {
         if(this.choroplethProperties.length == 0){
             this.addInfoBox();
         }
+        let geoLevel = propertyJson[0].fips_code.length == 2 ? 'state' : 'county';
+        if(this.geoLevel != geoLevel){
+            this.geoLevel = geoLevel;
+            this.addGeoJson();
+            this.choroplethProperties = [];
+        }
         if(this.choroplethProperties.length < 2){
             let property = {};
             property.propertyName = propertyJson[0].attribute_name;
@@ -177,6 +189,14 @@ class Choropleth {
         // The code breaks without the below assignment.  I do not know why.  For some reason the properties don't update properly unless they are evaluated at this stage.  The return value is not used.
         let properties = this.geoJson.features[0].properties;  // DO NOT REMOVE
         return properties;
+    }
+
+    addGeoJson(){
+        if(this.geoLevel == 'state'){
+            this.geoJson = STATE_GEO_JSON;
+        } else if (this.geoLevel == 'county'){
+            this.geoJson = COUNTY_GEO_JSON;
+        }
     }
 
     removeChoroplethProperty(propertyName){
@@ -224,6 +244,13 @@ class Choropleth {
                 boxNode.appendChild(document.createElement('br'));
                 delete propsCopy.NAME;
                 delete propsCopy['GEO ID'];
+                delete propsCopy.LSAD10;
+                delete propsCopy.CLASSFP10;
+                delete propsCopy.MTFCC10;
+                delete propsCopy.CSAFP10;
+                delete propsCopy.CBSAFP10;
+                delete propsCopy.METDIVFP10;
+                delete propsCopy.FUNCSTAT10;
                 for (let key in propsCopy){
                     let text = document.createTextNode(`${key}: ${propsCopy[key]}`);
                     boxNode.appendChild(text);
@@ -338,6 +365,8 @@ async function generateImage(quality=0.95, format='jpg'){
 function loadMap(choropleth, sidePanel){
     if(PRELOADED_MAP){
         choropleth.mapId = PRELOADED_MAP.map_id;
+        choropleth.geoLevel = PRELOADED_MAP.geo_level;
+        sidePanel.geoLevel = PRELOADED_MAP.geo_level;
         let title = PRELOADED_MAP.title;
         choropleth.title = title;
         document.getElementById('map-title').value = title;
@@ -357,7 +386,7 @@ function loadMap(choropleth, sidePanel){
             let dataset2 = {};
             dataset2.attributeName = PRELOADED_MAP.attribute_name_2;
             dataset2.attributeYear = PRELOADED_MAP.attribute_year_2;
-            dataset2.datasetId = PRELOADED_MAP.primary_dataset_id;
+            dataset2.datasetId = PRELOADED_MAP.secondary_dataset_id;
             sidePanel.processAttribute(dataset2);
         }
     }

@@ -123,7 +123,7 @@ async function uploadDataset(){
     });
 
     async function saveNewDataset(dataset){
-        const url_string = SCRIPT_ROOT + 'save-dataset';
+        const url_string = SCRIPT_ROOT + 'datasets/save';
         const response = await postData(url_string, dataset);
         if(response.success){
             window.location.reload();
