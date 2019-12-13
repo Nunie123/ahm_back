@@ -516,6 +516,11 @@ class Map(db.Model, SerializerMixin):
         maps = cls.query.order_by(sa.desc(cls.view_count)).limit(3).all()
         return maps
 
+    @classmethod
+    def get_community_maps(cls, owner_id):
+        maps = cls.query.filter(cls.owner_id!=owner_id).order_by(sa.desc(cls.map_id)).all()
+        return maps
+
 
 class MapView(db.Model):
     __tablename__ = 'map_views'
